@@ -1,0 +1,13 @@
+name: csv_to_json
+description: Convert a CSV file to a JSON array of objects using the header row as keys.
+toolset: hub
+destructive: false
+requires: [python3]
+schema:
+  type: object
+  properties:
+    file_path:
+      type: string
+      description: Path to the CSV file (e.g. "/tmp/data.csv")
+  required: [file_path]
+command: python3 ./run.py {file_path}

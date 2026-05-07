@@ -19,3 +19,10 @@ tools:
     files:
       - tool.yaml
       - run.sh
+
+  - name: csv_to_json
+    description: Convert a CSV file to a JSON array of objects using the header row as keys
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.py
