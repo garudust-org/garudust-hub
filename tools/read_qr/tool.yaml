@@ -1,0 +1,12 @@
+name: read_qr
+description: Decode a QR code from an image file. Returns the text or URL embedded in the QR code.
+toolset: hub
+destructive: false
+schema:
+  type: object
+  properties:
+    image_path:
+      type: string
+      description: Path to the image file containing the QR code (e.g. "/tmp/qr.png")
+  required: [image_path]
+command: ./run.sh {image_path}

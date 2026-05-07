@@ -12,3 +12,10 @@ tools:
     version: "1.0.0"
     files:
       - tool.yaml
+
+  - name: read_qr
+    description: Decode a QR code from an image file
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.sh
