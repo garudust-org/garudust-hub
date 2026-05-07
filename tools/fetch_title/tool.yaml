@@ -1,0 +1,13 @@
+name: fetch_title
+description: Fetch the HTML <title> of a webpage from a given URL.
+toolset: hub
+destructive: false
+requires: [uv]
+schema:
+  type: object
+  properties:
+    url:
+      type: string
+      description: Full URL of the webpage (e.g. "https://example.com")
+  required: [url]
+command: uv run --with httpx --with beautifulsoup4 ./run.py {url}

@@ -34,3 +34,10 @@ tools:
       - tool.yaml
       - run.sh
       - main.rs
+
+  - name: fetch_title
+    description: Fetch the HTML title of a webpage from a given URL
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.py
