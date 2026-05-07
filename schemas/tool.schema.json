@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Garudust Tool Definition",
+  "type": "object",
+  "required": ["name", "description", "toolset", "destructive", "schema", "command"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Snake_case tool name matching the folder name under tools/"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "One-sentence description of what the tool does"
+    },
+    "toolset": {
+      "type": "string",
+      "const": "hub"
+    },
+    "destructive": {
+      "type": "boolean",
+      "description": "True if the tool writes, deletes, or modifies external state"
+    },
+    "schema": {
+      "type": "object",
+      "required": ["type", "properties"],
+      "properties": {
+        "type": { "type": "string", "const": "object" },
+        "properties": { "type": "object" },
+        "required": { "type": "array", "items": { "type": "string" } }
+      },
+      "description": "JSON Schema describing the tool's input parameters"
+    },
+    "command": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Shell command to run, with {param} placeholders matching schema properties"
+    }
+  }
+}

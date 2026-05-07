@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate tools
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install check-jsonschema and PyYAML
+        run: pip install check-jsonschema pyyaml
+
+      - name: Validate all tool.yaml files against schema
+        run: |
+          failed=0
+          for tool_yaml in tools/*/tool.yaml; do
+            echo "Checking $tool_yaml..."
+            if ! check-jsonschema --schemafile schemas/tool.schema.json "$tool_yaml"; then
+              failed=1
+            fi
+          done
+          exit $failed
+
+      - name: Check index.yaml is in sync with tools/
+        run: |
+          python3 - <<'EOF'
+          import os, sys, yaml
+
+          with open("index.yaml") as f:
+              index = yaml.safe_load(f)
+
+          indexed = {t["name"] for t in index.get("tools", [])}
+          on_disk = {d for d in os.listdir("tools") if os.path.isdir(f"tools/{d}")}
+
+          missing_from_index = on_disk - indexed
+          missing_from_disk  = indexed - on_disk
+
+          ok = True
+          if missing_from_index:
+              print(f"ERROR: tool folders not listed in index.yaml: {missing_from_index}")
+              ok = False
+          if missing_from_disk:
+              print(f"ERROR: index.yaml entries with no matching folder: {missing_from_disk}")
+              ok = False
+
+          if ok:
+              print("index.yaml is in sync.")
+          else:
+              sys.exit(1)
+          EOF
+
+      - name: Check tool name matches folder name
+        run: |
+          python3 - <<'EOF'
+          import os, sys, yaml
+
+          ok = True
+          for folder in os.listdir("tools"):
+              tool_yaml_path = f"tools/{folder}/tool.yaml"
+              if not os.path.isfile(tool_yaml_path):
+                  continue
+              with open(tool_yaml_path) as f:
+                  data = yaml.safe_load(f)
+              if data.get("name") != folder:
+                  print(f"ERROR: {tool_yaml_path}: name '{data.get('name')}' does not match folder '{folder}'")
+                  ok = False
+
+          if ok:
+              print("All tool names match their folder names.")
+          else:
+              sys.exit(1)
+          EOF

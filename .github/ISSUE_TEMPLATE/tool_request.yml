@@ -1,0 +1,44 @@
+name: Tool Request
+description: Request a new tool to be added to garudust-hub
+labels: ["tool-request"]
+body:
+  - type: input
+    id: tool_name
+    attributes:
+      label: Tool name
+      description: Proposed snake_case name for the tool
+      placeholder: e.g. pdf_to_text
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What should this tool do?
+      description: One or two sentences describing the tool's purpose
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: Underlying command or binary
+      description: What CLI tool or command would power this? (e.g. pdftotext, ffmpeg)
+      placeholder: e.g. pdftotext
+
+  - type: dropdown
+    id: api_key
+    attributes:
+      label: Requires an API key?
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: willing_to_contribute
+    attributes:
+      label: Are you willing to implement this?
+      options:
+        - label: Yes, I can open a PR for this tool
