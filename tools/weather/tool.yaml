@@ -1,0 +1,12 @@
+name: weather
+description: Get current weather for a city. Returns temperature, condition, and wind in one line.
+toolset: hub
+destructive: false
+schema:
+  type: object
+  properties:
+    city:
+      type: string
+      description: City name (e.g. "Bangkok", "Tokyo", "New York")
+  required: [city]
+command: ./run.sh {city}

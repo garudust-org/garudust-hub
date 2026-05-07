@@ -1,0 +1,12 @@
+name: hash_text
+description: Compute the SHA-256 hash of a string. Useful for checksums or deduplication keys.
+toolset: hub
+destructive: false
+schema:
+  type: object
+  properties:
+    text:
+      type: string
+      description: The string to hash
+  required: [text]
+command: printf '%s' {text} | shasum -a 256 | awk '{print $1}'

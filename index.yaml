@@ -1,0 +1,14 @@
+version: "1"
+tools:
+  - name: weather
+    description: Get current weather for a city using wttr.in (no API key required)
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.sh
+
+  - name: hash_text
+    description: Compute the SHA-256 hash of a string
+    version: "1.0.0"
+    files:
+      - tool.yaml
