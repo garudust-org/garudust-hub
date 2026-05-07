@@ -1,0 +1,13 @@
+name: yaml_to_json
+description: Convert a YAML file to formatted JSON output.
+toolset: hub
+destructive: false
+requires: [node, npm]
+schema:
+  type: object
+  properties:
+    file_path:
+      type: string
+      description: Path to a YAML file (e.g. "/tmp/config.yaml")
+  required: [file_path]
+command: ./run.sh {file_path}

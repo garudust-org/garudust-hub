@@ -50,3 +50,12 @@ tools:
       - run.sh
       - Cargo.toml
       - src/main.rs
+
+  - name: yaml_to_json
+    description: Convert a YAML file to formatted JSON output
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.sh
+      - index.js
+      - package.json
