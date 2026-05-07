@@ -25,20 +25,21 @@ garudust tool list
 | `read_qr` | Decode a QR code from an image file | Bash | `zbarimg` (`brew install zbar`) |
 | `csv_to_json` | Convert a CSV file to a JSON array of objects | Python | `python3` |
 | `token_count` | Count characters, words, and estimated LLM tokens | Rust | `rustc` |
+| `fetch_title` | Fetch the HTML title of a webpage | Python + uv | `uv` |
 
 ## Writing tools in different languages
 
-Tools can be written in any language. The `command` field in `tool.yaml` is a plain shell command — set the interpreter there, and declare runtime dependencies in `requires`.
+Tools can be written in any language. The `command` field in `tool.yaml` is a plain shell command — set the interpreter there and declare runtime dependencies in `requires`.
 
 ### Inline (no script file)
 
-Best for one-liners using standard Unix tools.
+Best for one-liners using standard Unix tools. No script file needed.
 
 ```yaml
 command: printf '%s' {text} | shasum -a 256 | awk '{print $1}'
 ```
 
-No `requires` needed if the tools are part of a standard Unix environment.
+**Limitations:** Limited to what the shell and standard Unix utilities can express in one line.
 
 ---
 
@@ -51,7 +52,6 @@ tools/my_tool/
 ```
 
 ```yaml
-requires: []   # or omit entirely
 command: ./run.sh {param}
 ```
 
@@ -61,11 +61,11 @@ set -euo pipefail
 echo "$1"
 ```
 
-**Limitations:** Bash is available everywhere but not ideal for complex data processing or error handling.
+**Limitations:** Available everywhere, but not ideal for complex data processing or structured output.
 
 ---
 
-### Python
+### Python (stdlib only)
 
 ```
 tools/my_tool/
@@ -84,7 +84,36 @@ import sys
 print(sys.argv[1])
 ```
 
-**Limitations:** Only Python stdlib — tools must not run `pip install` at runtime. If an external package is truly required, document it clearly in `requires` and the PR description.
+**Limitations:** Restricted to Python stdlib. Tools must not run `pip install` at runtime.
+
+---
+
+### Python with external packages (via uv)
+
+Use [`uv`](https://github.com/astral-sh/uv) when the tool needs third-party packages. Declare each package with `--with` in the command — `uv` resolves, installs, and caches them automatically on first run.
+
+```
+tools/my_tool/
+├── tool.yaml
+└── run.py
+```
+
+```yaml
+requires: [uv]
+command: uv run --with httpx --with beautifulsoup4 ./run.py {param}
+```
+
+```python
+#!/usr/bin/env python3
+import sys, httpx
+from bs4 import BeautifulSoup
+# ...
+```
+
+**Limitations:**
+- Requires `uv` to be installed (`brew install uv` / `pip install uv`)
+- First run downloads packages (~seconds); subsequent runs use the cache
+- No `pyproject.toml` or `requirements.txt` needed — packages live in the `command` line
 
 ---
 
@@ -106,7 +135,7 @@ command: node ./run.js {param}
 console.log(process.argv[2]);
 ```
 
-**Limitations:** Same as Python — only Node.js built-in modules. No `npm install` at runtime.
+**Limitations:** Only Node.js built-in modules. No `npm install` at runtime.
 
 ---
 
@@ -124,7 +153,7 @@ requires: [rustc]
 command: ./run.sh {param}
 ```
 
-`run.sh` compiles `main.rs` on first use and caches the binary:
+`run.sh` compiles `main.rs` on first use and caches the binary in `/tmp/`:
 
 ```bash
 #!/usr/bin/env bash
@@ -138,9 +167,20 @@ fi
 ```
 
 **Limitations:**
-- Only Rust stdlib — no `cargo` or external crates (single-file `rustc` only)
+- Rust stdlib only — no `cargo` or external crates (single-file `rustc` compilation)
 - First run incurs a compile step (~1–3s)
 - Do **not** commit pre-compiled binaries — they are platform-specific and inflate the repo
+
+---
+
+### Quick comparison
+
+| | Inline | Bash | Python stdlib | Python + uv | Node.js | Rust |
+|---|---|---|---|---|---|---|
+| External packages | — | — | No | Yes | No | No |
+| Compile step | — | — | — | — | — | First run |
+| Requires install | Nothing | Nothing | `python3` | `uv` | `node` | `rustc` |
+| Best for | One-liners | Shell glue | Data, text | Web, APIs | JS tooling | Performance |
 
 ---
 
