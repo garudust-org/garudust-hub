@@ -26,3 +26,11 @@ tools:
     files:
       - tool.yaml
       - run.py
+
+  - name: token_count
+    description: Count characters, words, and estimated LLM tokens in a text file
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.sh
+      - main.rs

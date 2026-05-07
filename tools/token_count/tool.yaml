@@ -1,0 +1,13 @@
+name: token_count
+description: Count characters, words, and estimated LLM tokens in a text file.
+toolset: hub
+destructive: false
+requires: [rustc]
+schema:
+  type: object
+  properties:
+    file_path:
+      type: string
+      description: Path to a plain text file (e.g. "/tmp/article.txt")
+  required: [file_path]
+command: ./run.sh {file_path}
