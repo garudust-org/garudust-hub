@@ -1,0 +1,13 @@
+name: markdown_to_html
+description: Convert a Markdown file to HTML, with support for tables, strikethrough, and task lists.
+toolset: hub
+destructive: false
+requires: [cargo]
+schema:
+  type: object
+  properties:
+    file_path:
+      type: string
+      description: Path to a Markdown file (e.g. "/tmp/doc.md")
+  required: [file_path]
+command: ./run.sh {file_path}

@@ -41,3 +41,12 @@ tools:
     files:
       - tool.yaml
       - run.py
+
+  - name: markdown_to_html
+    description: Convert a Markdown file to HTML with support for tables, strikethrough, and task lists
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.sh
+      - Cargo.toml
+      - src/main.rs
