@@ -1,6 +1,8 @@
 # garudust-hub
 
-Community tool repository for [Garudust Agent](https://github.com/garudust-org/garudust-agent).
+Open tool registry for [Garudust Agent](https://github.com/garudust-org/garudust-agent) — write tools in any language and install them in one command.
+
+Tools can be a single shell one-liner or a full Rust crate. Each tool declares its own schema, command, and dependencies. The agent handles the rest.
 
 ![CI](https://github.com/garudust-org/garudust-hub/actions/workflows/ci.yml/badge.svg)
 
