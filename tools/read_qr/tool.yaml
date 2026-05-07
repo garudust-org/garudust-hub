@@ -9,4 +9,5 @@ schema:
       type: string
       description: Path to the image file containing the QR code (e.g. "/tmp/qr.png")
   required: [image_path]
+requires: [zbarimg]
 command: ./run.sh {image_path}

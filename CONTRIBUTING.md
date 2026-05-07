@@ -8,8 +8,8 @@ Each tool lives in `tools/<tool_name>/` and requires:
 
 ```
 tools/my_tool/
-├── tool.yaml   # required — metadata, schema, command
-└── run.sh      # optional — script referenced by command
+├── tool.yaml      # required — metadata, schema, command
+└── run.sh / run.py / run.js / ...   # optional script referenced by command
 ```
 
 An entry must also be added to `index.yaml`.
@@ -40,6 +40,7 @@ name: my_tool
 description: One sentence describing what this tool does.
 toolset: hub
 destructive: false        # true if the tool writes/deletes external state
+requires: [python3]       # optional — runtimes or binaries needed
 schema:
   type: object
   properties:
@@ -47,30 +48,63 @@ schema:
       type: string
       description: What this parameter is for
   required: [param_name]
-command: some-binary {param_name}
+command: python3 ./run.py {param_name}
 ```
 
 **Rules:**
 - `name` must be snake_case and match the folder name
 - `description` must be at least 10 characters
 - `toolset` must be `"hub"`
+- `requires` is optional but must be filled when the tool depends on a non-standard binary
 - Placeholders in `command` must match keys in `schema.properties`
 - Validate against the schema before submitting: see [Validation](#validation)
 
-### 4. Write `run.sh` (if needed)
+### 4. Write your script (any language)
 
-Use `run.sh` when the command is more than a one-liner. Reference it as `./run.sh {param}` in `tool.yaml`.
+Tools can be written in any language as long as the interpreter is available on the user's system. Reference the script in `command` with the appropriate interpreter.
 
+**Bash**
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
+param="$1"
 # your logic here
 ```
+```yaml
+command: ./run.sh {param}
+```
 
-Make it executable:
+**Python**
+```python
+#!/usr/bin/env python3
+import sys
+param = sys.argv[1]
+# your logic here
+```
+```yaml
+requires: [python3]
+command: python3 ./run.py {param}
+```
 
+**Node.js**
+```js
+#!/usr/bin/env node
+const param = process.argv[2];
+// your logic here
+```
+```yaml
+requires: [node]
+command: node ./run.js {param}
+```
+
+**Inline (no script file needed)**
+```yaml
+command: printf '%s' {text} | shasum -a 256 | awk '{print $1}'
+```
+
+Make the script file executable:
 ```bash
-chmod +x tools/my_tool/run.sh
+chmod +x tools/my_tool/run.py   # or run.sh, run.js, etc.
 ```
 
 ### 5. Update `index.yaml`
@@ -83,7 +117,7 @@ Add an entry at the bottom of the `tools:` list:
     version: "1.0.0"
     files:
       - tool.yaml
-      - run.sh     # only if run.sh exists
+      - run.py     # whatever script file you added
 ```
 
 ### 6. Validate your tool.yaml
@@ -95,16 +129,15 @@ check-jsonschema --schemafile schemas/tool.schema.json tools/my_tool/tool.yaml
 
 ### 7. Test manually
 
-Run your tool locally before opening a PR:
-
 ```bash
-# example
+python3 tools/my_tool/run.py "some input"
+# or
 bash tools/my_tool/run.sh "some input"
 ```
 
 ### 8. Open a pull request
 
-Use the PR template checklist. CI will automatically validate all `tool.yaml` files and check that `index.yaml` is in sync.
+Use the PR template checklist. CI will automatically validate all `tool.yaml` files, check that `index.yaml` is in sync, and verify that script files are executable.
 
 ---
 
@@ -115,7 +148,8 @@ Use the PR template checklist. CI will automatically validate all `tool.yaml` fi
 | No API keys | Tools should work without authentication where possible |
 | Non-destructive by default | Set `destructive: true` only if the tool modifies external state |
 | Single responsibility | Each tool does one thing well |
-| Dependency disclosure | If your tool requires a non-standard binary (e.g. `zbarimg`), note it in the PR description |
+| Declare dependencies | List all required runtimes/binaries in `requires` — this is machine-readable and shown to users before install |
+| No pip/npm install at runtime | Tools must not install packages on the fly; dependencies must already be present |
 
 ---
 
@@ -124,5 +158,7 @@ Use the PR template checklist. CI will automatically validate all `tool.yaml` fi
 Every PR runs:
 1. **Schema validation** — all `tool.yaml` files must conform to `schemas/tool.schema.json`
 2. **Index sync check** — every folder in `tools/` must have a matching entry in `index.yaml`
+3. **Name match check** — `name` in `tool.yaml` must match its folder name
+4. **Executable check** — script files referenced in `command` must have the executable bit set
 
 Fix any CI failures before requesting a review.

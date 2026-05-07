@@ -81,3 +81,34 @@ jobs:
           else:
               sys.exit(1)
           EOF
+
+      - name: Check script files referenced in command are executable
+        run: |
+          python3 - <<'EOF'
+          import os, sys, re, stat, yaml
+
+          ok = True
+          for folder in os.listdir("tools"):
+              tool_yaml_path = f"tools/{folder}/tool.yaml"
+              if not os.path.isfile(tool_yaml_path):
+                  continue
+              with open(tool_yaml_path) as f:
+                  data = yaml.safe_load(f)
+
+              command = data.get("command", "")
+              # find ./script references (e.g. ./run.sh, ./run.py, ./run.js)
+              scripts = re.findall(r'\./(\S+)', command)
+              for script in scripts:
+                  path = f"tools/{folder}/{script}"
+                  if not os.path.isfile(path):
+                      print(f"ERROR: {tool_yaml_path}: referenced script '{script}' not found")
+                      ok = False
+                  elif not (os.stat(path).st_mode & stat.S_IXUSR):
+                      print(f"ERROR: {path} is not executable (run: chmod +x {path})")
+                      ok = False
+
+          if ok:
+              print("All script files are executable.")
+          else:
+              sys.exit(1)
+          EOF

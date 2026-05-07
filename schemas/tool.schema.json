@@ -37,6 +37,12 @@
       "type": "string",
       "minLength": 1,
       "description": "Shell command to run, with {param} placeholders matching schema properties"
+    },
+    "requires": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Runtimes or binaries the tool depends on (e.g. python3, node, zbarimg)"
     }
   }
 }
