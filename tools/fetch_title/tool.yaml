@@ -1,5 +1,5 @@
 name: fetch_title
-description: Fetch the HTML <title> of a webpage from a given URL.
+description: Fetch the HTML title of a webpage from a given URL. Use when you need to identify or label a URL without reading its full content.
 toolset: hub
 destructive: false
 requires: [uv]

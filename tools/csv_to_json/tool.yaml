@@ -1,5 +1,5 @@
 name: csv_to_json
-description: Convert a CSV file to a JSON array of objects using the header row as keys.
+description: Convert a CSV file to a JSON array of objects using the header row as keys. Use when an API or downstream tool expects JSON but the data source is a CSV file.
 toolset: hub
 destructive: false
 requires: [python3]

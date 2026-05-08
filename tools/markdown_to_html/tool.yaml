@@ -1,5 +1,5 @@
 name: markdown_to_html
-description: Convert a Markdown file to HTML, with support for tables, strikethrough, and task lists.
+description: Convert a Markdown file to HTML with support for tables, strikethrough, and task lists. Use when rendering Markdown for display in a browser or embedding in an email.
 toolset: hub
 destructive: false
 requires: [cargo]

@@ -1,5 +1,5 @@
 name: token_count
-description: Count characters, words, and estimated LLM tokens in a text file.
+description: Count characters, words, and estimated LLM tokens in a text file. Use before sending a file to an LLM to estimate cost or check whether it fits within a context limit.
 toolset: hub
 destructive: false
 requires: [rustc]

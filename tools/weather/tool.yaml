@@ -1,5 +1,5 @@
 name: weather
-description: Get current weather for a city. Returns temperature, condition, and wind in one line.
+description: Get current weather for a city. Use when the user asks about current weather conditions in a specific location.
 toolset: hub
 destructive: false
 schema:

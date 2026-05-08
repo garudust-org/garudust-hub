@@ -1,5 +1,5 @@
 name: read_qr
-description: Decode a QR code from an image file. Returns the text or URL embedded in the QR code.
+description: Decode a QR code from an image file. Use when the user provides an image containing a QR code and wants to know its content.
 toolset: hub
 destructive: false
 schema:

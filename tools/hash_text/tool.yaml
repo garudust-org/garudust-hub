@@ -1,5 +1,5 @@
 name: hash_text
-description: Compute the SHA-256 hash of a string. Useful for checksums or deduplication keys.
+description: Compute the SHA-256 hash of a string. Use when you need a checksum or a deduplication key for a piece of text.
 toolset: hub
 destructive: false
 schema:

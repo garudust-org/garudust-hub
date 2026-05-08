@@ -1,5 +1,5 @@
 name: yaml_to_json
-description: Convert a YAML file to formatted JSON output.
+description: Convert a YAML file to formatted JSON output. Use when a tool or API requires JSON but the config or data is written in YAML.
 toolset: hub
 destructive: false
 requires: [node, npm]
