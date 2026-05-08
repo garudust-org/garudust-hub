@@ -24,10 +24,12 @@ garudust tool list
 |---|---|---|---|
 | `weather` | Get current weather for a city (wttr.in) | Bash | — |
 | `hash_text` | Compute SHA-256 hash of a string | Inline | — |
-| `read_qr` | Decode a QR code from an image file | Bash | `zbarimg` (`brew install zbar`) |
+| `read_qr` | Decode a QR code from an image file | Bash | `zbarimg` |
 | `csv_to_json` | Convert a CSV file to a JSON array of objects | Python | `python3` |
 | `token_count` | Count characters, words, and estimated LLM tokens | Rust | `rustc` |
 | `fetch_title` | Fetch the HTML title of a webpage | Python + uv | `uv` |
+| `markdown_to_html` | Convert a Markdown file to HTML | Rust + cargo | `cargo` |
+| `yaml_to_json` | Convert a YAML file to formatted JSON | Node.js + npm | `node`, `npm` |
 
 ## Writing tools in different languages
 
@@ -80,19 +82,13 @@ requires: [python3]
 command: python3 ./run.py {param}
 ```
 
-```python
-#!/usr/bin/env python3
-import sys
-print(sys.argv[1])
-```
-
 **Limitations:** Restricted to Python stdlib. Tools must not run `pip install` at runtime.
 
 ---
 
 ### Python with external packages (via uv)
 
-Use [`uv`](https://github.com/astral-sh/uv) when the tool needs third-party packages. Declare each package with `--with` in the command — `uv` resolves, installs, and caches them automatically on first run.
+Use [`uv`](https://github.com/astral-sh/uv) when the tool needs third-party packages. Declare each package with `--with` in the command — `uv` resolves, installs, and caches them automatically on first run. No `pyproject.toml` or `requirements.txt` needed.
 
 ```
 tools/my_tool/
@@ -105,48 +101,66 @@ requires: [uv]
 command: uv run --with httpx --with beautifulsoup4 ./run.py {param}
 ```
 
-```python
-#!/usr/bin/env python3
-import sys, httpx
-from bs4 import BeautifulSoup
-# ...
-```
-
-**Limitations:**
-- Requires `uv` to be installed (`brew install uv` / `pip install uv`)
-- First run downloads packages (~seconds); subsequent runs use the cache
-- No `pyproject.toml` or `requirements.txt` needed — packages live in the `command` line
+**Limitations:** Requires `uv` (`brew install uv`). First run downloads packages; subsequent runs use the cache.
 
 ---
 
-### Node.js
+### Node.js (built-in modules only)
 
 ```
 tools/my_tool/
 ├── tool.yaml
-└── run.js
+└── index.js
 ```
 
 ```yaml
 requires: [node]
-command: node ./run.js {param}
-```
-
-```js
-#!/usr/bin/env node
-console.log(process.argv[2]);
+command: node ./index.js {param}
 ```
 
 **Limitations:** Only Node.js built-in modules. No `npm install` at runtime.
 
 ---
 
-### Rust
+### Node.js with external packages (via npm)
+
+Use a `package.json` when the tool needs npm packages. `run.sh` installs `node_modules` on first use and reuses them on subsequent runs.
 
 ```
 tools/my_tool/
 ├── tool.yaml
-├── run.sh      ← build wrapper
+├── run.sh
+├── package.json
+└── index.js
+```
+
+```yaml
+requires: [node, npm]
+command: ./run.sh {param}
+```
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ ! -d "$DIR/node_modules" ]]; then
+    npm install --prefix "$DIR" --silent >&2
+fi
+node "$DIR/index.js" "$1"
+```
+
+**Limitations:** `node_modules/` lives in the tool folder (gitignored). First run runs `npm install`.
+
+---
+
+### Rust (stdlib only)
+
+Single-file compilation with `rustc`. No external crates.
+
+```
+tools/my_tool/
+├── tool.yaml
+├── run.sh
 └── main.rs
 ```
 
@@ -154,8 +168,6 @@ tools/my_tool/
 requires: [rustc]
 command: ./run.sh {param}
 ```
-
-`run.sh` compiles `main.rs` on first use and caches the binary in `/tmp/`:
 
 ```bash
 #!/usr/bin/env bash
@@ -168,21 +180,53 @@ fi
 "$BINARY" "$1"
 ```
 
-**Limitations:**
-- Rust stdlib only — no `cargo` or external crates (single-file `rustc` compilation)
-- First run incurs a compile step (~1–3s)
-- Do **not** commit pre-compiled binaries — they are platform-specific and inflate the repo
+**Limitations:** Rust stdlib only. First run compiles (~1–3s); binary is cached at `/tmp/`.
+
+---
+
+### Rust with external crates (via cargo)
+
+Use a Cargo project when the tool needs external crates. `run.sh` runs `cargo build --release` on first use and caches the binary at `/tmp/`.
+
+```
+tools/my_tool/
+├── tool.yaml
+├── run.sh
+├── Cargo.toml
+├── Cargo.lock
+└── src/
+    └── main.rs
+```
+
+```yaml
+requires: [cargo]
+command: ./run.sh {param}
+```
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+DIR="$(cd "$(dirname "$0")" && pwd)"
+BINARY="/tmp/garudust_my_tool"
+if [[ ! -f "$BINARY" ]]; then
+    cargo build --release --manifest-path "$DIR/Cargo.toml" >&2
+    cp "$DIR/target/release/my_tool" "$BINARY"
+fi
+"$BINARY" "$1"
+```
+
+**Limitations:** First build downloads crates and compiles (~10–60s). `target/` is gitignored. Do **not** commit pre-compiled binaries.
 
 ---
 
 ### Quick comparison
 
-| | Inline | Bash | Python stdlib | Python + uv | Node.js | Rust |
-|---|---|---|---|---|---|---|
-| External packages | — | — | No | Yes | No | No |
-| Compile step | — | — | — | — | — | First run |
-| Requires install | Nothing | Nothing | `python3` | `uv` | `node` | `rustc` |
-| Best for | One-liners | Shell glue | Data, text | Web, APIs | JS tooling | Performance |
+| | Inline | Bash | Python | Python + uv | Node.js | Node.js + npm | Rust | Rust + cargo |
+|---|---|---|---|---|---|---|---|---|
+| External packages | — | — | No | Yes | No | Yes | No | Yes |
+| First-run overhead | — | — | — | pkg download | — | npm install | compile | compile + pkg |
+| Requires | Nothing | Nothing | `python3` | `uv` | `node` | `node`, `npm` | `rustc` | `cargo` |
+| Best for | One-liners | Shell glue | Data, text | Web, APIs | JS tooling | JS ecosystem | Performance | Performance + crates |
 
 ---
 
