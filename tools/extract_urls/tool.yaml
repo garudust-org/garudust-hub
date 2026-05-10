@@ -1,0 +1,13 @@
+name: extract_urls
+description: Extract all URLs from a file (HTML or plain text). Use when you need to collect links from a downloaded page or document for further processing.
+toolset: hub
+destructive: false
+requires: [uv]
+schema:
+  type: object
+  properties:
+    file_path:
+      type: string
+      description: Path to an HTML or plain text file (e.g. "/tmp/page.html")
+  required: [file_path]
+command: uv run --with beautifulsoup4 ./run.py {file_path}

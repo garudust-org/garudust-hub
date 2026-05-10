@@ -1,0 +1,13 @@
+name: file_info
+description: Return metadata for a file — size, MIME type, encoding, line count, and word count. Use when you need to understand a file before deciding how to process it.
+toolset: hub
+destructive: false
+requires: [python3]
+schema:
+  type: object
+  properties:
+    file_path:
+      type: string
+      description: Path to the file (e.g. "/tmp/report.csv")
+  required: [file_path]
+command: python3 ./run.py {file_path}
