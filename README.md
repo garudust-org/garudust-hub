@@ -1,8 +1,9 @@
 # garudust-hub
 
-Open tool registry for [Garudust Agent](https://github.com/garudust-org/garudust-agent) — write tools in any language and install them in one command.
+Open registry of **tools** and **skills** for [Garudust Agent](https://github.com/garudust-org/garudust-agent) — install in one command, write in any language.
 
-Tools can be a single shell one-liner or a full Rust crate. Each tool declares its own schema, command, and dependencies. The agent handles the rest.
+- **Tools** — executable scripts the agent can call (Bash, Python, Node.js, Rust)
+- **Skills** — Markdown instruction sets that shape how the agent behaves in a workflow
 
 ![CI](https://github.com/garudust-org/garudust-hub/actions/workflows/ci.yml/badge.svg)
 
@@ -30,6 +31,21 @@ garudust tool list
 | `fetch_title` | Fetch the HTML title of a webpage | Python + uv | `uv` |
 | `markdown_to_html` | Convert a Markdown file to HTML | Rust + cargo | `cargo` |
 | `yaml_to_json` | Convert a YAML file to formatted JSON | Node.js + npm | `node`, `npm` |
+| `file_info` | Return metadata for a file | Python | `python3` |
+| `extract_urls` | Extract all URLs from an HTML or plain text file | Python + uv | `uv` |
+
+## Available skills
+
+Skills load natural language instructions into the agent's context. Install with:
+
+```bash
+garudust skill install garudust-org/garudust-hub/skills/git-workflow
+```
+
+| Skill | Description |
+|---|---|
+| `git-workflow` | Conventional commits, branch naming, and PR best practices |
+| `code-review` | Systematic checklist for reviewing PRs — correctness, security, readability, and tests |
 
 ## Writing tools in different languages
 

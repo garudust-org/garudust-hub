@@ -162,3 +162,70 @@ Every PR runs:
 4. **Executable check** — script files referenced in `command` must have the executable bit set
 
 Fix any CI failures before requesting a review.
+
+---
+
+## Contributing a skill
+
+Skills are Markdown instruction sets that tell the agent *how* to behave during a workflow. They are different from tools — no code is executed, only natural language instructions loaded into the agent's context.
+
+### Skill structure
+
+```
+skills/my-skill/
+├── SKILL.md          # required — frontmatter + instructions
+└── scripts/          # optional — helper scripts (any language)
+    └── helper.sh
+```
+
+### Writing `SKILL.md`
+
+```markdown
+---
+name: my-skill
+description: One sentence describing when to use this skill.
+version: 1.0.0
+permissions:
+  terminal: true      # allow terminal tool
+  web_fetch: false    # deny web_fetch
+---
+
+## Instructions
+
+Write natural language instructions here. Tell the agent exactly
+how to behave, what to check, and what output format to use.
+```
+
+**Rules:**
+- `name` must be lowercase, digits, and hyphens only — no underscores (agentskills.io compatible)
+- `description` explains *when* the agent should load this skill
+- `permissions` is optional — omit to leave all tools unrestricted
+- Use `allowed-tools: terminal read_file` as an alternative to `permissions` (agentskills.io format)
+
+### Adding `scripts/`
+
+Helper scripts in `scripts/` are downloaded and made executable automatically on `skill install`. Name them clearly and make them executable locally before committing:
+
+```bash
+chmod +x skills/my-skill/scripts/helper.sh
+```
+
+### Update `index.yaml`
+
+Add an entry under `skills:`:
+
+```yaml
+  - name: my-skill
+    description: One sentence describing when to use this skill.
+    version: "1.0.0"
+    files:
+      - SKILL.md
+      - scripts/helper.sh   # only if scripts exist
+```
+
+### Install locally to test
+
+```bash
+garudust skill install garudust-org/garudust-hub/skills/my-skill
+garudust skill list
+```
