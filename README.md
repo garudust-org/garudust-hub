@@ -1,5 +1,9 @@
 # garudust-hub
 
+<p align="center">
+  <img src="assets/logo.png" alt="Garudust Hub" width="280" />
+</p>
+
 Open registry of **tools** and **skills** for [Garudust Agent](https://github.com/garudust-org/garudust-agent) — install in one command, write in any language.
 
 - **Tools** — executable scripts the agent can call (Bash, Python, Node.js, Rust)
