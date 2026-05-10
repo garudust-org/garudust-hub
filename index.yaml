@@ -74,6 +74,13 @@ tools:
       - tool.yaml
       - run.py
 
+  - name: facebook_post
+    description: Post text or a photo with caption to a Facebook Page via Graph API
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.py
+
 skills:
   - name: git-workflow
     description: Conventional commits, branch naming, and PR best practices for every git operation
@@ -84,6 +91,12 @@ skills:
 
   - name: code-review
     description: Systematic checklist for reviewing pull requests — correctness, security, readability, and tests
+    version: "1.0.0"
+    files:
+      - SKILL.md
+
+  - name: facebook-workflow
+    description: Prepare and publish content to a Facebook Page — handles text posts and photo posts via the facebook_post tool
     version: "1.0.0"
     files:
       - SKILL.md

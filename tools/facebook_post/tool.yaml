@@ -1,0 +1,19 @@
+name: facebook_post
+description: Post text or a photo with caption to a Facebook Page via Graph API. Use when the user wants to publish content to a Facebook Page they manage. Requires FACEBOOK_ACCESS_TOKEN env var.
+toolset: hub
+destructive: true
+requires: [uv]
+schema:
+  type: object
+  properties:
+    page_id:
+      type: string
+      description: Facebook Page ID (found in Page settings or URL)
+    message:
+      type: string
+      description: Post text content
+    image_path:
+      type: string
+      description: Absolute path to an image file to attach (JPG or PNG). Leave empty for a text-only post.
+  required: [page_id, message, image_path]
+command: uv run --with httpx ./run.py {page_id} {message} {image_path}
