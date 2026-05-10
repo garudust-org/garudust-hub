@@ -16,7 +16,26 @@ garudust tool install weather
 ## Install a skill
 
 ```bash
+garudust skill install git-workflow
+```
+
+Skills from this hub can be installed by short name. Other sources are also accepted:
+
+```bash
+# Short name — resolved via the hub index (default: garudust-org/garudust-hub)
+garudust skill install git-workflow
+
+# Short name from a custom hub
+garudust skill install git-workflow --hub myorg/my-hub
+
+# Full GitHub path
 garudust skill install garudust-org/garudust-hub/skills/git-workflow
+
+# Direct URL
+garudust skill install https://example.com/skills/SKILL.md
+
+# Well-known endpoint
+garudust skill install well-known:https://example.com
 ```
 
 ## Available tools
@@ -41,9 +60,9 @@ Skills load natural language instructions into the agent's context — they shap
 
 | Skill | Description | Install |
 |---|---|---|
-| `git-workflow` | Conventional commits, branch naming, and PR best practices | `garudust skill install garudust-org/garudust-hub/skills/git-workflow` |
-| `code-review` | Systematic PR review checklist — correctness, security, readability, and tests | `garudust skill install garudust-org/garudust-hub/skills/code-review` |
-| `facebook-workflow` | Prepare and publish content to a Facebook Page (text or photo) | `garudust skill install garudust-org/garudust-hub/skills/facebook-workflow` |
+| `git-workflow` | Conventional commits, branch naming, and PR best practices | `garudust skill install git-workflow` |
+| `code-review` | Systematic PR review checklist — correctness, security, readability, and tests | `garudust skill install code-review` |
+| `facebook-workflow` | Prepare and publish content to a Facebook Page (text or photo) | `garudust skill install facebook-workflow` |
 
 ## Writing tools in different languages
 
