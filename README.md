@@ -10,7 +10,11 @@ Open registry of **tools** and **skills** for [Garudust Agent](https://github.co
 ## Install a tool
 
 ```bash
+# Short name — resolved via the hub index (default: garudust-org/garudust-hub)
 garudust tool install weather
+
+# Short name from a custom hub
+garudust tool install weather --hub myorg/my-hub
 ```
 
 ## Install a skill
