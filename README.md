@@ -13,10 +13,10 @@ Open registry of **tools** and **skills** for [Garudust Agent](https://github.co
 garudust tool install weather
 ```
 
-## List available tools
+## Install a skill
 
 ```bash
-garudust tool list
+garudust skill install garudust-org/garudust-hub/skills/git-workflow
 ```
 
 ## Available tools
@@ -31,21 +31,19 @@ garudust tool list
 | `fetch_title` | Fetch the HTML title of a webpage | Python + uv | `uv` |
 | `markdown_to_html` | Convert a Markdown file to HTML | Rust + cargo | `cargo` |
 | `yaml_to_json` | Convert a YAML file to formatted JSON | Node.js + npm | `node`, `npm` |
-| `file_info` | Return metadata for a file | Python | `python3` |
+| `file_info` | Return size, MIME type, encoding, and line count of a file | Python | `python3` |
 | `extract_urls` | Extract all URLs from an HTML or plain text file | Python + uv | `uv` |
+| `facebook_post` | Post text or photo to a Facebook Page via Graph API | Python + uv | `uv`, `FACEBOOK_ACCESS_TOKEN` |
 
 ## Available skills
 
-Skills load natural language instructions into the agent's context. Install with:
+Skills load natural language instructions into the agent's context — they shape *how* the agent behaves, not what it can run.
 
-```bash
-garudust skill install garudust-org/garudust-hub/skills/git-workflow
-```
-
-| Skill | Description |
-|---|---|
-| `git-workflow` | Conventional commits, branch naming, and PR best practices |
-| `code-review` | Systematic checklist for reviewing PRs — correctness, security, readability, and tests |
+| Skill | Description | Install |
+|---|---|---|
+| `git-workflow` | Conventional commits, branch naming, and PR best practices | `garudust skill install garudust-org/garudust-hub/skills/git-workflow` |
+| `code-review` | Systematic PR review checklist — correctness, security, readability, and tests | `garudust skill install garudust-org/garudust-hub/skills/code-review` |
+| `facebook-workflow` | Prepare and publish content to a Facebook Page (text or photo) | `garudust skill install garudust-org/garudust-hub/skills/facebook-workflow` |
 
 ## Writing tools in different languages
 
