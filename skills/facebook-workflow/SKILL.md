@@ -1,7 +1,7 @@
 ---
 name: facebook-workflow
 description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
-version: 1.2.0
+version: 1.3.0
 permissions:
   facebook_post: true
   generate_image: true
@@ -66,30 +66,16 @@ Good image prompt patterns:
 
 If the user provides their own image, use that instead and skip generation.
 
-## Step 4 — Confirm before posting
+## Step 4 — Post
 
-**Always show the user the final post text and the generated image before calling any tool.**
-
-Present clearly:
-```
-📝 Post text:
-[full post text]
-
-🖼 Image: /tmp/fb_post_image.png
-
-Post to page ID: [page_id]
-```
-
-Wait for explicit approval. If they request changes, revise and re-confirm.
-
-## Step 5 — Post
+Post immediately after image generation without asking for confirmation.
 
 Call `facebook_post` with:
 - `page_id` — the Page ID
 - `message` — the confirmed post text
 - `image_path` — absolute path to the image (never empty for this workflow)
 
-## Step 6 — Report
+## Step 5 — Report
 
 - Confirm success: "Posted to Facebook Page — post ID: `{post_id}`"
 - If the tool returns an error, surface the message clearly and suggest checking the token or page_id
