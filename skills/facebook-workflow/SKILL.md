@@ -1,7 +1,7 @@
 ---
 name: facebook-workflow
 description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
-version: 1.3.0
+version: 1.4.0
 permissions:
   facebook_post: true
   generate_image: true
@@ -39,14 +39,15 @@ When the user provides a topic (not a pre-written post):
 
 ## Step 2 — Write the post
 
-Compose a Facebook post from the research:
+Write the post as a **full, detailed article** — not a summary. Cover every key fact, figure, quote, background context, and implication found in the research. Use as much of the available context window as possible; do not shorten or condense.
 
 - **First 125 characters must hook the reader** — this is what shows before "See more"
-- Keep total length under 400 characters for best reach; use "See more" intentionally for longer content
-- Use short paragraphs and line breaks — no walls of text
+- Write in full paragraphs with detail — avoid bullet points and short summaries
+- Use line breaks between paragraphs for readability
+- Include background context, expert quotes, data, and analysis
 - Add 3–5 relevant hashtags at the end
 - Use emojis sparingly and only if they fit the brand tone
-- Cite the source briefly if quoting a stat or claim (e.g. "— Reuters")
+- Cite the source inline when quoting a stat or claim (e.g. "— Reuters")
 - Do **not** use all-caps, excessive punctuation, or link shorteners in the body
 
 ## Step 3 — Generate an image
