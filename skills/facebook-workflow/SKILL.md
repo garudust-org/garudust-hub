@@ -1,9 +1,10 @@
 ---
 name: facebook-workflow
-description: Prepare and publish content to a Facebook Page — handles text posts and photo posts via the facebook_post tool
-version: 1.0.0
+description: Prepare and publish content to a Facebook Page — handles text posts and photo posts via the facebook_post tool, with optional AI image generation via generate_image
+version: 1.1.0
 permissions:
   facebook_post: true
+  generate_image: true
   terminal: false
   web_fetch: false
 ---
@@ -30,12 +31,30 @@ Before posting, verify:
 - Emojis are effective on Facebook — use sparingly and only if they fit the brand tone
 - Avoid all-caps, excessive punctuation, and link shorteners in the text body
 
-## Preparing the image
+## Generating an image with AI
+
+If the user does not provide an image but wants one, use the `generate_image` tool (free, no API key required):
+
+1. Write an image prompt that matches the post content — be specific about subject, mood, style, and composition
+2. Choose dimensions:
+   - **1200 × 630** for landscape (default, recommended for link-style posts)
+   - **1080 × 1080** for square (better for feed visibility)
+3. Save to a temp path, e.g. `/tmp/fb_post_image.png`
+4. Show the generated image to the user for approval before posting
+
+Example prompt style for a product post:
+> "Professional product photo of [item], clean white background, soft studio lighting, high detail, commercial photography style"
+
+For lifestyle/travel content:
+> "Vibrant photo of [scene], golden hour lighting, wide angle, vivid colors, travel photography style"
+
+**Always confirm the generated image with the user before posting.**
+
+## Preparing the image (user-provided)
 
 If the user provides an image:
 - Confirm the file exists and is JPG or PNG
 - Recommended dimensions: **1200 × 630 px** for landscape, **1080 × 1080 px** for square
-- If the image needs resizing, use the `image_resize` tool before posting
 - Pass the absolute path to `facebook_post`
 
 For a text-only post, pass an empty string as `image_path`.
@@ -47,7 +66,7 @@ Call `facebook_post` with:
 - `message` — the prepared post text
 - `image_path` — absolute path to the image, or `""` for text-only
 
-**Always confirm the final message with the user before calling the tool.** Show them the exact text and image that will be posted and wait for approval.
+**Always confirm the final message and image with the user before calling the tool.**
 
 ## After posting
 

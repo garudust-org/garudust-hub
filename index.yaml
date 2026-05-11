@@ -81,6 +81,13 @@ tools:
       - tool.yaml
       - run.py
 
+  - name: generate_image
+    description: Generate an image from a text prompt using Pollinations.ai (free, no API key required)
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.py
+
 skills:
   - name: git-workflow
     description: Conventional commits, branch naming, and PR best practices for every git operation
@@ -96,7 +103,7 @@ skills:
       - SKILL.md
 
   - name: facebook-workflow
-    description: Prepare and publish content to a Facebook Page — handles text posts and photo posts via the facebook_post tool
-    version: "1.0.0"
+    description: Prepare and publish content to a Facebook Page — handles text posts and photo posts, with optional AI image generation
+    version: "1.1.0"
     files:
       - SKILL.md
