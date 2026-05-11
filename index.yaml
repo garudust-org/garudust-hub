@@ -103,7 +103,7 @@ skills:
       - SKILL.md
 
   - name: facebook-workflow
-    description: Prepare and publish content to a Facebook Page — handles text posts and photo posts, with optional AI image generation
-    version: "1.1.0"
+    description: Research a topic, write a Facebook post, generate a matching image, and publish to a Page — full automated workflow
+    version: "1.2.0"
     files:
       - SKILL.md

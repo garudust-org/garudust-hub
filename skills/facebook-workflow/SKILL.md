@@ -1,75 +1,95 @@
 ---
 name: facebook-workflow
-description: Prepare and publish content to a Facebook Page — handles text posts and photo posts via the facebook_post tool, with optional AI image generation via generate_image
-version: 1.1.0
+description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
+version: 1.2.0
 permissions:
   facebook_post: true
   generate_image: true
+  web_search: true
+  web_fetch: true
   terminal: false
-  web_fetch: false
 ---
 
 ## When to use this skill
 
-Load this skill whenever the user asks to post, publish, or share content on a Facebook Page.
+Load this skill whenever the user asks to post, publish, or share content on a Facebook Page — including when they provide a topic and want the agent to research, write, and post automatically.
 
 ## Setup check
 
-Before posting, verify:
+Before starting, verify:
 
 1. `FACEBOOK_ACCESS_TOKEN` is set in the environment — if not, ask the user to set it:
    ```
    export FACEBOOK_ACCESS_TOKEN=your_token_here
    ```
-2. The user has provided a `page_id` — if not, ask. It is the numeric ID found in Page settings or the URL (`facebook.com/your-page-name` → Settings → Page ID).
+2. `HF_TOKEN` is set (for image generation) — if not, ask the user to set it:
+   ```
+   export HF_TOKEN=your_token_here
+   ```
+3. The user has provided a `page_id` — if not, ask. Found in Page settings or URL (`facebook.com/<page>` → Settings → Page ID).
 
-## Preparing the message
+## Step 1 — Research the topic
 
-- Keep the **first 125 characters** compelling — this is what shows before "See more"
-- Use line breaks to improve readability, not walls of text
-- Add 3–5 relevant hashtags at the end (more than this hurts reach on Facebook)
-- Emojis are effective on Facebook — use sparingly and only if they fit the brand tone
-- Avoid all-caps, excessive punctuation, and link shorteners in the text body
+When the user provides a topic (not a pre-written post):
 
-## Generating an image with AI
+1. Use `web_search` to find 3–5 recent, credible sources about the topic
+2. Use `web_fetch` to read the most relevant articles in full
+3. Extract the key facts, figures, and quotes
+4. Identify the angle most relevant and engaging for the page's audience
 
-If the user does not provide an image but wants one, use the `generate_image` tool (requires `HF_TOKEN` — free at huggingface.co/settings/tokens):
+## Step 2 — Write the post
 
-1. Write an image prompt that matches the post content — be specific about subject, mood, style, and composition
+Compose a Facebook post from the research:
+
+- **First 125 characters must hook the reader** — this is what shows before "See more"
+- Keep total length under 400 characters for best reach; use "See more" intentionally for longer content
+- Use short paragraphs and line breaks — no walls of text
+- Add 3–5 relevant hashtags at the end
+- Use emojis sparingly and only if they fit the brand tone
+- Cite the source briefly if quoting a stat or claim (e.g. "— Reuters")
+- Do **not** use all-caps, excessive punctuation, or link shorteners in the body
+
+## Step 3 — Generate an image
+
+Always generate an image to accompany the post using the `generate_image` tool (requires `HF_TOKEN`):
+
+1. Write an image prompt based on the post content — be specific about subject, mood, style, and composition
 2. Choose dimensions:
-   - **1200 × 630** for landscape (default, recommended for link-style posts)
-   - **1080 × 1080** for square (better for feed visibility)
-3. Save to a temp path, e.g. `/tmp/fb_post_image.png`
-4. Show the generated image to the user for approval before posting
+   - **1024 × 576** — landscape (default, good for news/article posts)
+   - **1080 × 1080** — square (better for feed visibility)
+3. Save to `/tmp/fb_post_image.png`
 
-Example prompt style for a product post:
-> "Professional product photo of [item], clean white background, soft studio lighting, high detail, commercial photography style"
+Good image prompt patterns:
+- News/tech: `"[subject], cinematic lighting, editorial photography style, sharp detail"`
+- AI/science: `"[concept] visualized as futuristic digital art, dark background, glowing elements"`
+- Lifestyle: `"[scene], golden hour lighting, wide angle, vivid colors, travel photography style"`
 
-For lifestyle/travel content:
-> "Vibrant photo of [scene], golden hour lighting, wide angle, vivid colors, travel photography style"
+If the user provides their own image, use that instead and skip generation.
 
-**Always confirm the generated image with the user before posting.**
+## Step 4 — Confirm before posting
 
-## Preparing the image (user-provided)
+**Always show the user the final post text and the generated image before calling any tool.**
 
-If the user provides an image:
-- Confirm the file exists and is JPG or PNG
-- Recommended dimensions: **1200 × 630 px** for landscape, **1080 × 1080 px** for square
-- Pass the absolute path to `facebook_post`
+Present clearly:
+```
+📝 Post text:
+[full post text]
 
-For a text-only post, pass an empty string as `image_path`.
+🖼 Image: /tmp/fb_post_image.png
 
-## Posting
+Post to page ID: [page_id]
+```
+
+Wait for explicit approval. If they request changes, revise and re-confirm.
+
+## Step 5 — Post
 
 Call `facebook_post` with:
 - `page_id` — the Page ID
-- `message` — the prepared post text
-- `image_path` — absolute path to the image, or `""` for text-only
+- `message` — the confirmed post text
+- `image_path` — absolute path to the image (never empty for this workflow)
 
-**Always confirm the final message and image with the user before calling the tool.**
+## Step 6 — Report
 
-## After posting
-
-- Report the `post_id` from the tool response
 - Confirm success: "Posted to Facebook Page — post ID: `{post_id}`"
-- If the tool returns an error, surface the error message clearly and suggest checking the token or page_id
+- If the tool returns an error, surface the message clearly and suggest checking the token or page_id
