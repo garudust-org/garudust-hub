@@ -1,6 +1,6 @@
 ---
 name: log-analyst
-description: วิเคราะห์ log / analyse log files — หา error, warning, anomaly, trace request, สรุป incident — works on any log format
+description: Analyse log files to find error patterns, detect anomalies, trace requests, and summarise incidents — works on any log format
 version: 1.1.0
 permissions:
   terminal: true
@@ -11,7 +11,6 @@ permissions:
 ## When to use this skill
 
 Load this skill whenever the user asks to:
-- วิเคราะห์ log / ดู log / ตรวจสอบ log / หา error ใน log
 - Read, search, or analyse a log file
 - Find errors, warnings, or unusual patterns
 - Detect anomaly spikes in log volume or error rate
