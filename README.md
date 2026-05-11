@@ -63,11 +63,16 @@ garudust skill install well-known:https://example.com
 
 Skills load natural language instructions into the agent's context — they shape *how* the agent behaves, not what it can run.
 
+```bash
+garudust skill update                  # update all installed skills
+garudust skill update facebook-workflow  # update a specific skill
+```
+
 | Skill | Description | Install |
 |---|---|---|
 | `git-workflow` | Conventional commits, branch naming, and PR best practices | `garudust skill install git-workflow` |
 | `code-review` | Systematic PR review checklist — correctness, security, readability, and tests | `garudust skill install code-review` |
-| `facebook-workflow` | Prepare and publish content to a Facebook Page (text or photo) | `garudust skill install facebook-workflow` |
+| `facebook-workflow` | Research a topic, write a post, generate a matching image with AI, and publish to a Facebook Page | `garudust skill install facebook-workflow` |
 
 ## Writing tools in different languages
 
