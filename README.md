@@ -57,7 +57,7 @@ garudust skill install well-known:https://example.com
 | `file_info` | Return size, MIME type, encoding, and line count of a file | Python | `python3` |
 | `extract_urls` | Extract all URLs from an HTML or plain text file | Python + uv | `uv` |
 | `facebook_post` | Post text or photo to a Facebook Page via Graph API | Python + uv | `uv`, `FACEBOOK_ACCESS_TOKEN` |
-| `generate_image` | Generate an image from a text prompt (Ideogram V2) | Python + uv | `uv`, `IDEOGRAM_API_KEY` |
+| `generate_image` | Generate an image from a text prompt (HF FLUX.1-schnell, free tier) | Python + uv | `uv`, `HF_TOKEN` |
 
 ## Available skills
 

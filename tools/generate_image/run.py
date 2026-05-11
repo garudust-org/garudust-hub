@@ -2,24 +2,10 @@
 import sys, os, json, time
 import httpx
 
-IDEOGRAM_API = "https://api.ideogram.ai/generate"
-MAX_RETRIES = 3
-RETRY_DELAYS = [2, 4, 8]
-
-ASPECT_RATIOS = [
-    (16 / 9,  "ASPECT_16_9"),
-    (3 / 2,   "ASPECT_3_2"),
-    (4 / 3,   "ASPECT_4_3"),
-    (1 / 1,   "ASPECT_1_1"),
-    (3 / 4,   "ASPECT_3_4"),
-    (2 / 3,   "ASPECT_2_3"),
-    (9 / 16,  "ASPECT_9_16"),
-]
-
-
-def nearest_aspect(width: int, height: int) -> str:
-    ratio = width / height
-    return min(ASPECT_RATIOS, key=lambda x: abs(x[0] - ratio))[1]
+HF_API = "https://api-inference.huggingface.co/models"
+DEFAULT_MODEL = "black-forest-labs/FLUX.1-schnell"
+MAX_RETRIES = 5
+RETRY_DELAYS = [2, 4, 8, 16, 30]
 
 
 def die(msg: str) -> None:
@@ -34,7 +20,7 @@ def main() -> None:
     prompt = sys.argv[1].strip()
     output_path = sys.argv[2].strip()
 
-    width, height = 1200, 630
+    width, height = 1024, 576
     try:
         if len(sys.argv) > 3 and sys.argv[3].strip():
             width = int(sys.argv[3])
@@ -48,76 +34,83 @@ def main() -> None:
     if not output_path:
         die("output_path is required")
 
-    api_key = os.environ.get("IDEOGRAM_API_KEY", "").strip()
-    if not api_key:
-        die("IDEOGRAM_API_KEY environment variable is not set")
+    token = os.environ.get("HF_TOKEN", "").strip()
+    if not token:
+        die("HF_TOKEN environment variable is not set (get a free token at huggingface.co/settings/tokens)")
 
-    aspect_ratio = nearest_aspect(width, height)
-    print(f"Generating image ({aspect_ratio})...", file=sys.stderr)
-
+    url = f"{HF_API}/{DEFAULT_MODEL}"
     payload = {
-        "image_request": {
-            "prompt": prompt,
-            "model": "V_2",
-            "aspect_ratio": aspect_ratio,
-            "magic_prompt_option": "AUTO",
-        }
+        "inputs": prompt,
+        "parameters": {
+            "width": width,
+            "height": height,
+            "num_inference_steps": 4,
+        },
     }
 
-    image_url = None
+    print(f"Generating {width}×{height} image with {DEFAULT_MODEL}...", file=sys.stderr)
+
+    image_bytes = None
     with httpx.Client(timeout=120) as client:
         for attempt in range(MAX_RETRIES):
             try:
                 resp = client.post(
-                    IDEOGRAM_API,
-                    headers={"Api-Key": api_key, "Content-Type": "application/json"},
+                    url,
+                    headers={"Authorization": f"Bearer {token}"},
                     json=payload,
                 )
             except httpx.RequestError as e:
                 die(f"network error: {e}")
 
-            if resp.status_code in (429, 500, 502, 503):
-                if attempt < MAX_RETRIES - 1:
+            # Model still loading — HF returns 503 with estimated_time
+            if resp.status_code == 503:
+                try:
+                    body = resp.json()
+                    wait = int(body.get("estimated_time", RETRY_DELAYS[attempt]))
+                    wait = min(wait, 30)
+                except Exception:
                     wait = RETRY_DELAYS[attempt]
-                    reason = "rate limited" if resp.status_code == 429 else f"server error {resp.status_code}"
-                    print(f"{reason} — retrying in {wait}s (attempt {attempt + 1}/{MAX_RETRIES})...", file=sys.stderr)
+                if attempt < MAX_RETRIES - 1:
+                    print(f"Model loading — retrying in {wait}s (attempt {attempt + 1}/{MAX_RETRIES})...", file=sys.stderr)
                     time.sleep(wait)
                     continue
-                die(f"HTTP {resp.status_code} after {MAX_RETRIES} attempts — try again later")
+                die("model still loading after max retries — try again in a moment")
+
+            if resp.status_code == 429:
+                if attempt < MAX_RETRIES - 1:
+                    wait = RETRY_DELAYS[attempt]
+                    print(f"Rate limited — retrying in {wait}s (attempt {attempt + 1}/{MAX_RETRIES})...", file=sys.stderr)
+                    time.sleep(wait)
+                    continue
+                die("rate limited — try again later")
 
             if resp.status_code != 200:
                 try:
                     err = resp.json()
-                    die(err.get("message") or resp.text[:200])
+                    die(err.get("error") or resp.text[:200])
                 except Exception:
                     die(f"HTTP {resp.status_code}: {resp.text[:200]}")
 
-            data = resp.json().get("data", [])
-            if not data:
-                die("no image returned from Ideogram")
-
-            image_url = data[0]["url"]
+            image_bytes = resp.content
             break
 
-        # Download the generated image
-        try:
-            img_resp = client.get(image_url, follow_redirects=True)
-            img_resp.raise_for_status()
-        except httpx.RequestError as e:
-            die(f"failed to download image: {e}")
+    if not image_bytes:
+        die("no image returned")
 
     out_dir = os.path.dirname(output_path)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
 
     with open(output_path, "wb") as f:
-        f.write(img_resp.content)
+        f.write(image_bytes)
 
     print(json.dumps({
         "success": True,
         "output_path": output_path,
-        "aspect_ratio": aspect_ratio,
-        "size_kb": len(img_resp.content) // 1024,
+        "model": DEFAULT_MODEL,
+        "width": width,
+        "height": height,
+        "size_kb": len(image_bytes) // 1024,
     }, indent=2))
 
 

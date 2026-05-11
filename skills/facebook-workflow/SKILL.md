@@ -33,7 +33,7 @@ Before posting, verify:
 
 ## Generating an image with AI
 
-If the user does not provide an image but wants one, use the `generate_image` tool (requires `IDEOGRAM_API_KEY`):
+If the user does not provide an image but wants one, use the `generate_image` tool (requires `HF_TOKEN` — free at huggingface.co/settings/tokens):
 
 1. Write an image prompt that matches the post content — be specific about subject, mood, style, and composition
 2. Choose dimensions:
