@@ -2,7 +2,7 @@
 import sys, os, json, time
 import httpx
 
-HF_API = "https://api-inference.huggingface.co/models"
+HF_API = "https://router.huggingface.co/hf-inference/models"
 DEFAULT_MODEL = "black-forest-labs/FLUX.1-schnell"
 MAX_RETRIES = 5
 RETRY_DELAYS = [2, 4, 8, 16, 30]
