@@ -70,6 +70,7 @@ garudust skill update facebook-workflow  # update a specific skill
 
 | Skill | Description | Install |
 |---|---|---|
+| `log-analyst` | Find error patterns, detect anomalies, trace requests, and summarise incidents from any log file | `garudust skill install log-analyst` |
 | `git-workflow` | Conventional commits, branch naming, and PR best practices | `garudust skill install git-workflow` |
 | `code-review` | Systematic PR review checklist — correctness, security, readability, and tests | `garudust skill install code-review` |
 | `facebook-workflow` | Research a topic, write a post, generate a matching image with AI, and publish to a Facebook Page | `garudust skill install facebook-workflow` |

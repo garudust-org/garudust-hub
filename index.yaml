@@ -102,6 +102,12 @@ skills:
     files:
       - SKILL.md
 
+  - name: log-analyst
+    description: Analyse log files to find error patterns, detect anomalies, trace requests, and summarise incidents — works on any log format
+    version: "1.0.0"
+    files:
+      - SKILL.md
+
   - name: facebook-workflow
     description: Research a topic, write a Facebook post, generate a matching image, and publish to a Page — full automated workflow
     version: "1.4.0"
