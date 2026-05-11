@@ -1,5 +1,9 @@
 # garudust-hub
 
+<p align="center">
+  <img src="assets/logo.png" alt="Garudust Hub" width="280" />
+</p>
+
 Open registry of **tools** and **skills** for [Garudust Agent](https://github.com/garudust-org/garudust-agent) — install in one command, write in any language.
 
 - **Tools** — executable scripts the agent can call (Bash, Python, Node.js, Rust)
@@ -283,6 +287,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide. Quick version:
 3. Add your script file and make it executable (`chmod +x`)
 4. Add an entry to `index.yaml`
 5. Open a pull request — CI checks schema, index sync, and executable bits automatically
+
+## Contributing a skill
+
+1. Create a folder under `skills/<skill_name>/`
+2. Add `SKILL.md` with YAML frontmatter (`name`, `description`, `version`, `permissions`)
+3. Optionally add shell scripts under `skills/<skill_name>/scripts/` — they are auto-downloaded and made executable on install
+4. Add an entry to `index.yaml` under `skills:`
+5. Open a pull request
 
 ## License
 
