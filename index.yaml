@@ -82,7 +82,7 @@ tools:
       - run.py
 
   - name: generate_image
-    description: Generate an image from a text prompt using Pollinations.ai (free, no API key required)
+    description: Generate an image from a text prompt using Hugging Face Inference API (FLUX.1-schnell, free tier, requires HF_TOKEN)
     version: "1.0.0"
     files:
       - tool.yaml
