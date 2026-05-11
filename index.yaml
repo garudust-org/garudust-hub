@@ -83,7 +83,7 @@ tools:
 
   - name: generate_image
     description: Generate an image from a text prompt using Hugging Face Inference API (FLUX.1-schnell, free tier, requires HF_TOKEN)
-    version: "1.0.0"
+    version: "2.0.0"
     files:
       - tool.yaml
       - run.py
