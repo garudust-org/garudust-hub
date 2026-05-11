@@ -1,5 +1,5 @@
 name: generate_image
-description: Generate an image from a text prompt using Pollinations.ai (free, no API key required). Use when the user wants to create an image for a post or social media content.
+description: Generate an image from a text prompt using Ideogram.ai (V2 model). Use when the user wants to create an image for a post or social media content. Requires IDEOGRAM_API_KEY env var.
 toolset: hub
 destructive: false
 requires: [uv]
@@ -14,9 +14,9 @@ schema:
       description: Absolute path where the generated image will be saved (e.g. /tmp/post_image.png)
     width:
       type: integer
-      description: Image width in pixels (default 1200 — Facebook landscape)
+      description: Image width in pixels (default 1200 — maps to nearest Ideogram aspect ratio)
     height:
       type: integer
-      description: Image height in pixels (default 630 — Facebook landscape)
+      description: Image height in pixels (default 630 — maps to nearest Ideogram aspect ratio)
   required: [prompt, output_path]
 command: uv run --with httpx ./run.py {prompt} {output_path} {width} {height}
