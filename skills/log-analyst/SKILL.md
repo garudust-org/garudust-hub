@@ -1,7 +1,7 @@
 ---
 name: log-analyst
-description: Analyse log files to find error patterns, detect anomalies, trace requests, and summarise incidents — works on any log format
-version: 1.0.0
+description: วิเคราะห์ log / analyse log files — หา error, warning, anomaly, trace request, สรุป incident — works on any log format
+version: 1.1.0
 permissions:
   terminal: true
   files: true
@@ -11,6 +11,7 @@ permissions:
 ## When to use this skill
 
 Load this skill whenever the user asks to:
+- วิเคราะห์ log / ดู log / ตรวจสอบ log / หา error ใน log
 - Read, search, or analyse a log file
 - Find errors, warnings, or unusual patterns
 - Detect anomaly spikes in log volume or error rate
@@ -20,7 +21,7 @@ Load this skill whenever the user asks to:
 ## General rules
 
 - **Never read a large file with read_file directly.** Always pre-filter with `run_command` using `grep`, `awk`, `tail`, or `head` first. Log files can be gigabytes — only pass relevant lines to the LLM.
-- When the user does not specify a log path, ask for it before proceeding.
+- When the user does not specify a log path, check `~/.garudust/garudust.log` first, then ask.
 - When multiple log files need analysis, use `delegate_tasks` to read them in parallel.
 - Always report findings in plain language — timestamps, counts, and concrete examples, not vague descriptions.
 
@@ -30,7 +31,7 @@ Use when: user wants to know what errors are occurring and how often.
 
 ```bash
 # Count and rank error types
-grep -iE "error|exception|fatal|critical" <logfile> | sort | uniq -c | sort -rn | head -30
+grep -iE "error|exception|fatal|critical|warn" <logfile> | sort | uniq -c | sort -rn | head -30
 
 # Show context around the most frequent error
 grep -m 10 "<error string>" <logfile>
