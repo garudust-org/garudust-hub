@@ -1,7 +1,7 @@
 ---
 name: log-analyst
 description: Analyse log files to find error patterns, detect anomalies, trace requests, and summarise incidents — works on any log format
-version: 1.1.0
+version: 1.2.0
 permissions:
   terminal: true
   files: true
@@ -28,15 +28,14 @@ Load this skill whenever the user asks to:
 
 Use when: user wants to know what errors are occurring and how often.
 
+Call `run_command` with:
 ```bash
-# Count and rank error types
 grep -iE "error|exception|fatal|critical|warn" <logfile> | sort | uniq -c | sort -rn | head -30
+```
 
-# Show context around the most frequent error
-grep -m 10 "<error string>" <logfile>
-
-# Errors per hour
-grep -iE "error|exception" <logfile> | awk '{print $1, $2}' | cut -c1-13 | sort | uniq -c
+Then call `run_command` to show context around the most frequent error:
+```bash
+grep -m 10 "<top error string>" <logfile>
 ```
 
 After running:
@@ -48,16 +47,15 @@ After running:
 
 Use when: user wants to know if anything is unusual — traffic spikes, sudden error rate increase, gaps in logs.
 
+Call `run_command` with:
 ```bash
-# Request or log line count per minute
 awk '{print $1, $2}' <logfile> | cut -c1-16 | sort | uniq -c
+```
 
-# Error rate per hour (errors vs total lines)
-grep -c "ERROR" <logfile>
+Then call `run_command` to get error rate:
+```bash
+grep -c "ERROR\|error\|WARN\|warn" <logfile>
 wc -l <logfile>
-
-# Find gaps longer than N minutes (no log lines)
-awk '{print $1"T"$2}' <logfile> | sort | uniq
 ```
 
 After running:
@@ -70,15 +68,14 @@ After running:
 
 Use when: user provides a request ID, session ID, user ID, or IP address and wants to follow it through logs.
 
+Call `run_command` with:
 ```bash
-# Trace a specific ID across one file
-grep "<id>" <logfile>
-
-# Trace across multiple files
-grep -r "<id>" <log_directory>/
-
-# Follow the full lifecycle (sort by timestamp)
 grep "<id>" <logfile> | sort -k1,2
+```
+
+For multiple files, call `run_command` with:
+```bash
+grep -r "<id>" <log_directory>/
 ```
 
 After running:
@@ -91,8 +88,7 @@ After running:
 
 Use when: the user has multiple log files (e.g. multiple services, multiple servers) that need analysis together.
 
-Use `delegate_tasks` to analyse each file concurrently:
-
+Call `delegate_tasks` with:
 ```
 delegate_tasks([
   { task: "analyse errors in /var/log/api.log", context: "look for 5xx errors and exceptions" },
@@ -112,8 +108,11 @@ Use when: user wants a human-readable summary of what happened during an inciden
 
 Steps:
 1. Ask for the time range (start and end) if not provided
-2. Filter logs to that window: `awk '$0 >= "2024-01-15 14:00" && $0 <= "2024-01-15 14:30"' <logfile>`
-3. Run Mode 1 (errors) and Mode 2 (anomalies) on the filtered window
+2. Call `run_command` to filter logs to that window:
+```bash
+awk '$0 >= "2024-01-15 14:00" && $0 <= "2024-01-15 14:30"' <logfile>
+```
+3. Run Mode 1 (errors) and Mode 2 (anomalies) on the filtered output
 4. Write a structured incident report:
 
 ```
