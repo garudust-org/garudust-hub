@@ -1,7 +1,7 @@
 ---
 name: facebook-workflow
 description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
-version: 1.7.0
+version: 1.8.0
 permissions:
   facebook_post: true
   generate_image: true
@@ -33,10 +33,12 @@ Before starting, verify:
 
 When the user provides a topic (not a pre-written post):
 
-1. Use `web_search` to find 3–5 recent, credible sources about the topic
-2. Use `web_fetch` to read the most relevant articles in full
-3. Extract the key facts, figures, and quotes
+1. Use `web_search` to find the single most recent, credible article about the topic — **stop after one search call**
+2. Use `web_fetch` to read **only that one article** — do not fetch additional URLs
+3. Extract the key facts, figures, and quotes from it
 4. Identify the angle most relevant and engaging for the page's audience
+
+> **Context budget rule:** Limit research to 1 search + 1 fetch. This preserves enough output budget to write a full-length post.
 
 ## Step 2 — Write the post
 
