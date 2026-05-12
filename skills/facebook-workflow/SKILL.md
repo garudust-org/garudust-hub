@@ -1,7 +1,7 @@
 ---
 name: facebook-workflow
 description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
-version: 1.9.0
+version: 2.0.0
 permissions:
   facebook_post: true
   generate_image: true
@@ -40,26 +40,27 @@ When the user provides a topic (not a pre-written post):
 
 > **Context budget rule:** Limit research to 1 search + 1 fetch. This preserves enough output budget to write a full-length post.
 
-## Step 2 — Write the post draft (text response — no tool calls yet)
+## Step 2 — Write the post (TEXT OUTPUT — NO TOOL CALLS IN THIS TURN)
 
-**Before calling any tools**, output the complete post as plain text in your response. Do not call `generate_image` or `facebook_post` in this turn.
+🚫 **DO NOT call `generate_image` or `facebook_post` in this turn.**
+🚫 **DO NOT write the post inside a tool parameter.**
+✅ **Output the post as plain text in your response only.**
 
-Write a **minimum 200 words** using this structure:
+Write a post of **at least 200 Thai words** following this structure:
 
-1. **Hook** (1–2 sentences) — first 125 characters visible before "See more"; must grab attention
-2. **Background** (1 paragraph) — why this topic matters and context the reader needs
-3. **Main news** (2 paragraphs) — core facts, figures, and developments; cite source inline (e.g. "— Reuters")
-4. **Analysis** (1 paragraph) — what this means, why it matters going forward
-5. **Call to action** (1 sentence) — invite readers to comment or follow
-6. **Hashtags** — 3–5 relevant hashtags on their own line
+**[ประโยคเกริ่น]** — hook สั้น 1–2 ประโยค ดึงดูดให้คลิก "ดูเพิ่มเติม"
 
-Rules:
-- Write in full Thai paragraphs — no bullet points in the post
-- Use line breaks between paragraphs
-- Emojis sparingly (1–3 max)
-- Do **not** truncate or summarise — write the full text out completely
+**[ย่อหน้าที่ 1 — ความเป็นมา]** — อธิบายบริบทและความสำคัญของข่าว (3–5 ประโยค)
 
-Once the draft is written in your response, proceed to Step 3.
+**[ย่อหน้าที่ 2 — เนื้อหาหลัก]** — รายละเอียดข่าว ตัวเลข ข้อมูล และคำพูดอ้างอิง (3–5 ประโยค)
+
+**[ย่อหน้าที่ 3 — ผลกระทบและวิเคราะห์]** — ความหมายและผลต่ออนาคต (3–5 ประโยค)
+
+**[Call to action]** — 1 ประโยคชวนคอมเมนต์หรือติดตาม
+
+**[Hashtags]** — 3–5 hashtag บรรทัดสุดท้าย
+
+⚠️ เมื่อเขียนครบแล้ว ให้ระบุ `[DRAFT COMPLETE]` ท้ายสุด แล้วจึงไปขั้นตอนถัดไป
 
 ## Step 3 — Generate an image
 
