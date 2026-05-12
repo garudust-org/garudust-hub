@@ -28,12 +28,11 @@ def main() -> None:
         die("message is required")
 
     word_count = len(message.split())
-    if word_count < 100:
+    if word_count < 40:
         die(
             f"Post content too short ({word_count} words). "
-            "Minimum 100 words required. "
-            "Rewrite the message parameter with a full article: hook, background (3-5 sentences), "
-            "main news (3-5 sentences), analysis (3-5 sentences), call to action, and hashtags."
+            "Minimum 40 words required. "
+            "Write at least 3 full sentences covering: what happened, why it matters, and a call to action."
         )
 
     try:
