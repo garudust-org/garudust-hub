@@ -27,6 +27,15 @@ def main() -> None:
     if not message:
         die("message is required")
 
+    word_count = len(message.split())
+    if word_count < 100:
+        die(
+            f"Post content too short ({word_count} words). "
+            "Minimum 100 words required. "
+            "Rewrite the message parameter with a full article: hook, background (3-5 sentences), "
+            "main news (3-5 sentences), analysis (3-5 sentences), call to action, and hashtags."
+        )
+
     try:
         if image_path:
             if not os.path.isfile(image_path):
