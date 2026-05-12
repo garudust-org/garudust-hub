@@ -114,7 +114,17 @@ Call `facebook_post` with:
 - `message` — the confirmed post text
 - `image_path` — absolute path to the image (never empty for this workflow)
 
+> **CRITICAL — you MUST call the tool and wait for its result:**
+> - Do NOT report success until `facebook_post` has been called and a tool result has been returned by the system.
+> - Do NOT assume or simulate the outcome. If you have not received a tool result block, the post has NOT been sent.
+> - Do NOT write "I have posted" or "Posted successfully" before you see the tool result.
+> - The workflow is incomplete if the tool was never called, regardless of what was written or generated in prior steps.
+
 ## Step 5 — Report
 
-- Confirm success: "Posted to Facebook Page — post ID: `{post_id}`"
-- If the tool returns an error, surface the message clearly and suggest checking the token or page_id
+After the tool result is received:
+
+- If the result contains a `post_id`, confirm success: "Posted to Facebook Page — post ID: `<actual_id_from_tool_result>`"
+  - The `post_id` must be the exact value returned by the tool — never use a placeholder or a made-up ID.
+- If the result contains an error, surface the message clearly and suggest checking the token or page_id.
+- If no tool result was received (tool was not called), report: "Post was not sent — facebook_post was not called. Please retry."
