@@ -110,6 +110,6 @@ skills:
 
   - name: facebook-workflow
     description: Research a topic, write a Facebook post, generate a matching image, and publish to a Page — full automated workflow
-    version: "1.4.0"
+    version: "1.5.0"
     files:
       - SKILL.md

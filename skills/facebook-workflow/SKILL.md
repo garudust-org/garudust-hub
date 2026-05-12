@@ -1,13 +1,13 @@
 ---
 name: facebook-workflow
 description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
-version: 1.4.0
+version: 1.5.0
 permissions:
   facebook_post: true
   generate_image: true
   web_search: true
   web_fetch: true
-  terminal: false
+  terminal: true
 ---
 
 ## When to use this skill
@@ -66,6 +66,44 @@ Good image prompt patterns:
 - Lifestyle: `"[scene], golden hour lighting, wide angle, vivid colors, travel photography style"`
 
 If the user provides their own image, use that instead and skip generation.
+
+### Step 3b — Add text overlay
+
+After the image is saved, add a keyword phrase from the post content onto the image using `run_command`:
+
+1. Pick the single most important phrase from the post — max 6 words, in Thai or English matching the post language
+2. Run:
+
+```bash
+uv run --with pillow -c "
+from PIL import Image, ImageDraw, ImageFont
+import textwrap, os
+
+img = Image.open('/tmp/fb_post_image.png').convert('RGBA')
+w, h = img.size
+overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
+draw = ImageDraw.Draw(overlay)
+
+bar_h = int(h * 0.15)
+draw.rectangle([(0, h - bar_h), (w, h)], fill=(0, 0, 0, 175))
+
+try:
+    font = ImageFont.truetype('/System/Library/Fonts/Supplemental/Arial Bold.ttf', int(bar_h * 0.45))
+except:
+    font = ImageFont.load_default()
+
+text = '<KEYWORD_PHRASE>'
+bbox = draw.textbbox((0, 0), text, font=font)
+tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+draw.text(((w - tw) / 2, h - bar_h + (bar_h - th) / 2), text, font=font, fill=(255, 255, 255, 255))
+
+out = Image.alpha_composite(img, overlay).convert('RGB')
+out.save('/tmp/fb_post_image.png')
+print('overlay done')
+"
+```
+
+Replace `<KEYWORD_PHRASE>` with the chosen phrase before running. The result overwrites `/tmp/fb_post_image.png`.
 
 ## Step 4 — Post
 
