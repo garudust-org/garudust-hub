@@ -1,7 +1,7 @@
 # garudust-hub
 
 <p align="center">
-  <img src="assets/logo-hub.jpg" alt="Garudust Hub" />
+  <img src="assets/logo.jpg" alt="Garudust Hub" />
 </p>
 
 Open registry of **tools** and **skills** for [Garudust Agent](https://github.com/garudust-org/garudust-agent) — install in one command, write in any language.
