@@ -8,6 +8,7 @@ permissions:
   web_search: true
   web_fetch: true
   terminal: true
+required_tools: [facebook_post]
 ---
 
 ## When to use this skill
