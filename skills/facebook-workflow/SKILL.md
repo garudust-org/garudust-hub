@@ -1,7 +1,7 @@
 ---
 name: facebook-workflow
 description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
-version: 1.8.0
+version: 1.9.0
 permissions:
   facebook_post: true
   generate_image: true
@@ -40,24 +40,26 @@ When the user provides a topic (not a pre-written post):
 
 > **Context budget rule:** Limit research to 1 search + 1 fetch. This preserves enough output budget to write a full-length post.
 
-## Step 2 — Write the post
+## Step 2 — Write the post draft (text response — no tool calls yet)
 
-Write the post as a **full, detailed article** — minimum **400 words**. Cover every key fact, figure, quote, background context, and implication found in the research. Do not shorten or condense.
+**Before calling any tools**, output the complete post as plain text in your response. Do not call `generate_image` or `facebook_post` in this turn.
 
-Follow this structure:
+Write a **minimum 200 words** using this structure:
 
-1. **Hook** (1–2 sentences, first 125 characters visible before "See more") — must grab attention immediately
-2. **Background** (1–2 paragraphs) — why this topic matters, context the reader needs
-3. **Main news** (2–3 paragraphs) — the core facts, figures, and developments; cite sources inline (e.g. "— Reuters")
-4. **Analysis / implications** (1–2 paragraphs) — what this means going forward, expert quotes if available
-5. **Call to action** (1 sentence) — invite the reader to comment, share, or follow
+1. **Hook** (1–2 sentences) — first 125 characters visible before "See more"; must grab attention
+2. **Background** (1 paragraph) — why this topic matters and context the reader needs
+3. **Main news** (2 paragraphs) — core facts, figures, and developments; cite source inline (e.g. "— Reuters")
+4. **Analysis** (1 paragraph) — what this means, why it matters going forward
+5. **Call to action** (1 sentence) — invite readers to comment or follow
 6. **Hashtags** — 3–5 relevant hashtags on their own line
 
 Rules:
-- Write in full paragraphs — no bullet points or numbered lists in the post itself
-- Use line breaks between paragraphs for readability
-- Use emojis sparingly and only where they fit the tone (1–3 max)
-- Do **not** use all-caps, excessive punctuation, or link shorteners in the body
+- Write in full Thai paragraphs — no bullet points in the post
+- Use line breaks between paragraphs
+- Emojis sparingly (1–3 max)
+- Do **not** truncate or summarise — write the full text out completely
+
+Once the draft is written in your response, proceed to Step 3.
 
 ## Step 3 — Generate an image
 
