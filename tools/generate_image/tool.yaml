@@ -18,5 +18,8 @@ schema:
     height:
       type: integer
       description: Image height in pixels (default 576)
+    overlay_text:
+      type: string
+      description: Optional short phrase (max 6 words) to overlay on the bottom of the image as a caption bar. Leave empty to skip.
   required: [prompt, output_path]
-command: uv run --with httpx ./run.py {prompt} {output_path} {width} {height}
+command: uv run --with httpx --with pillow ./run.py {prompt} {output_path} {width} {height} {overlay_text}

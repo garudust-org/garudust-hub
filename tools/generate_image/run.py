@@ -13,9 +13,49 @@ def die(msg: str) -> None:
     sys.exit(1)
 
 
+def add_overlay(image_path: str, text: str) -> None:
+    from PIL import Image, ImageDraw, ImageFont
+
+    img = Image.open(image_path).convert("RGBA")
+    w, h = img.size
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+
+    bar_h = int(h * 0.15)
+    draw.rectangle([(0, h - bar_h), (w, h)], fill=(0, 0, 0, 175))
+
+    font_size = int(bar_h * 0.45)
+    font = None
+    for font_path in [
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
+    ]:
+        if os.path.exists(font_path):
+            try:
+                font = ImageFont.truetype(font_path, font_size)
+                break
+            except Exception:
+                continue
+    if font is None:
+        font = ImageFont.load_default()
+
+    bbox = draw.textbbox((0, 0), text, font=font)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    draw.text(
+        ((w - tw) / 2, h - bar_h + (bar_h - th) / 2),
+        text,
+        font=font,
+        fill=(255, 255, 255, 255),
+    )
+
+    out = Image.alpha_composite(img, overlay).convert("RGB")
+    out.save(image_path)
+
+
 def main() -> None:
     if len(sys.argv) < 3:
-        die("Usage: run.py <prompt> <output_path> [width] [height]")
+        die("Usage: run.py <prompt> <output_path> [width] [height] [overlay_text]")
 
     prompt = sys.argv[1].strip()
     output_path = sys.argv[2].strip()
@@ -28,6 +68,13 @@ def main() -> None:
             height = int(sys.argv[4])
     except ValueError:
         die("width and height must be integers")
+
+    # overlay_text is optional — unsubstituted placeholder arrives as literal "{overlay_text}"
+    overlay_text = ""
+    if len(sys.argv) > 5:
+        raw = sys.argv[5].strip()
+        if raw and raw != "{overlay_text}":
+            overlay_text = raw
 
     if not prompt:
         die("prompt is required")
@@ -62,7 +109,6 @@ def main() -> None:
             except httpx.RequestError as e:
                 die(f"network error: {e}")
 
-            # Model still loading — HF returns 503 with estimated_time
             if resp.status_code == 503:
                 try:
                     body = resp.json()
@@ -104,6 +150,10 @@ def main() -> None:
     with open(output_path, "wb") as f:
         f.write(image_bytes)
 
+    if overlay_text:
+        print(f"Adding overlay: {overlay_text!r}", file=sys.stderr)
+        add_overlay(output_path, overlay_text)
+
     print(json.dumps({
         "success": True,
         "output_path": output_path,
@@ -111,6 +161,7 @@ def main() -> None:
         "width": width,
         "height": height,
         "size_kb": len(image_bytes) // 1024,
+        "overlay_text": overlay_text or None,
     }, indent=2))
 
 
