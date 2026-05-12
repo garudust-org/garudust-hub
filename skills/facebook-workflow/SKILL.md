@@ -1,7 +1,7 @@
 ---
 name: facebook-workflow
 description: Research a topic, summarise it as a Facebook post, generate a matching image, and publish to a Facebook Page — all in one workflow
-version: 1.6.0
+version: 1.7.0
 permissions:
   facebook_post: true
   generate_image: true
@@ -40,15 +40,21 @@ When the user provides a topic (not a pre-written post):
 
 ## Step 2 — Write the post
 
-Write the post as a **full, detailed article** — not a summary. Cover every key fact, figure, quote, background context, and implication found in the research. Use as much of the available context window as possible; do not shorten or condense.
+Write the post as a **full, detailed article** — minimum **400 words**. Cover every key fact, figure, quote, background context, and implication found in the research. Do not shorten or condense.
 
-- **First 125 characters must hook the reader** — this is what shows before "See more"
-- Write in full paragraphs with detail — avoid bullet points and short summaries
+Follow this structure:
+
+1. **Hook** (1–2 sentences, first 125 characters visible before "See more") — must grab attention immediately
+2. **Background** (1–2 paragraphs) — why this topic matters, context the reader needs
+3. **Main news** (2–3 paragraphs) — the core facts, figures, and developments; cite sources inline (e.g. "— Reuters")
+4. **Analysis / implications** (1–2 paragraphs) — what this means going forward, expert quotes if available
+5. **Call to action** (1 sentence) — invite the reader to comment, share, or follow
+6. **Hashtags** — 3–5 relevant hashtags on their own line
+
+Rules:
+- Write in full paragraphs — no bullet points or numbered lists in the post itself
 - Use line breaks between paragraphs for readability
-- Include background context, expert quotes, data, and analysis
-- Add 3–5 relevant hashtags at the end
-- Use emojis sparingly and only if they fit the brand tone
-- Cite the source inline when quoting a stat or claim (e.g. "— Reuters")
+- Use emojis sparingly and only where they fit the tone (1–3 max)
 - Do **not** use all-caps, excessive punctuation, or link shorteners in the body
 
 ## Step 3 — Generate an image
