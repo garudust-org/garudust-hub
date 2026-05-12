@@ -27,6 +27,15 @@ def add_overlay(image_path: str, text: str) -> None:
     font_size = int(bar_h * 0.45)
     font = None
     for font_path in [
+        # macOS — Thai support
+        "/Library/Fonts/Arial Unicode.ttf",
+        "/System/Library/Fonts/Thonburi.ttc",
+        "/System/Library/Fonts/Supplemental/Tahoma.ttf",
+        # Linux — Thai support
+        "/usr/share/fonts/truetype/tlwg/Garuda-Bold.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansThai-Bold.ttf",
+        "/usr/share/fonts/noto/NotoSansThai-Bold.ttf",
+        # Fallbacks (Latin only)
         "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         "/usr/share/fonts/liberation/LiberationSans-Bold.ttf",
