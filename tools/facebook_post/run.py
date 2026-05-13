@@ -27,14 +27,6 @@ def main() -> None:
     if not message:
         die("message is required")
 
-    word_count = len(message.split())
-    if word_count < 20:
-        die(
-            f"Post content too short ({word_count} words). "
-            "Minimum 20 words required. "
-            "Write at least 3 sentences covering: what happened, why it matters, and a call to action."
-        )
-
     try:
         if image_path:
             if not os.path.isfile(image_path):
