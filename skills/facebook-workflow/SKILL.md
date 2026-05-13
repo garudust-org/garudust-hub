@@ -51,17 +51,19 @@ Good prompt patterns:
 **Post format (write directly in the `message` parameter — minimum 200 words in Thai):**
 
 ```
-[ประโยคเกริ่น — hook 1–2 ประโยค]
+[hook — ประโยคเปิดที่ดึงดูดความสนใจ 1–2 ประโยค ใช้คำถามหรือข้อเท็จจริงที่น่าตกใจ]
 
-[ความเป็นมา — บริบทและความสำคัญ 2–3 ประโยค]
+[ความเป็นมา — อธิบายบริบทและเหตุใดเรื่องนี้จึงสำคัญ 2–3 ประโยค]
 
-[เนื้อหาหลัก — รายละเอียด ตัวเลข ข้อมูล 2–3 ประโยค]
+[เนื้อหาหลัก — รายละเอียด ตัวเลข ข้อมูลเชิงลึกจากการค้นคว้า 3–4 ประโยค]
 
-[ผลกระทบ — ความหมายต่ออนาคต 2–3 ประโยค]
+[ตัวอย่างจริง — ยกกรณีศึกษา บริษัท หรือสถานการณ์ที่เกิดขึ้นจริง 2–3 ประโยค]
 
-[Call to action — 1 ประโยค]
+[ผลกระทบและแนวโน้ม — ความหมายต่ออนาคต โอกาส หรือความเสี่ยงที่ควรรู้ 2–3 ประโยค]
 
-#hashtag1 #hashtag2 #hashtag3
+[Call to action — ถามความคิดเห็น เชิญแสดงความเห็น หรือแนะนำสิ่งที่ผู้อ่านควรทำ 1–2 ประโยค]
+
+#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5
 ```
 
 > **CRITICAL:** Do NOT report success until `facebook_post` has been called and a tool result has been returned. Do NOT write "Posted successfully" before receiving a tool result.
