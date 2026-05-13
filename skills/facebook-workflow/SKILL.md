@@ -48,7 +48,7 @@ Good prompt patterns:
 - `image_path`: `/tmp/fb_post_image.png` (omit or leave empty if generate_image failed)
 - `message`: the full post text written inline (see format below)
 
-**Post format (write directly in the `message` parameter — minimum 20 words in Thai):**
+**Post format (write directly in the `message` parameter — minimum 200 words in Thai):**
 
 ```
 [ประโยคเกริ่น — hook 1–2 ประโยค]
