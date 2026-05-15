@@ -1,0 +1,26 @@
+name: view_image
+description: >
+  Analyse an image and answer a question about it using a free vision-capable
+  LLM (OpenRouter free tier by default, or Google Gemini Flash).
+  Pass a local file path or a public URL.
+  Use this tool whenever the user shares an image and asks what is in it,
+  or when a task requires understanding image content.
+toolset: hub
+destructive: false
+requires: [uv]
+env_required: [OPENROUTER_API_KEY]
+schema:
+  type: object
+  properties:
+    source:
+      type: string
+      description: >
+        Absolute local file path (e.g. /tmp/photo.jpg) or public image URL
+        (https://…). Supported formats: JPEG, PNG, WEBP, GIF.
+    question:
+      type: string
+      description: >
+        What to ask about the image, e.g. "What objects are in this image?"
+        Defaults to a general description if omitted.
+  required: [source]
+command: uv run --with httpx ./run.py {source} {question}
