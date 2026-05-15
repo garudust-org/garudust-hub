@@ -1,14 +1,14 @@
 name: view_image
 description: >
   Analyse an image and answer a question about it using a free vision-capable
-  LLM (OpenRouter free tier by default, or Google Gemini Flash).
+  LLM (Google Gemini Flash preferred, OpenRouter free tier as fallback).
   Pass a local file path or a public URL.
   Use this tool whenever the user shares an image and asks what is in it,
   or when a task requires understanding image content.
 toolset: hub
 destructive: false
 requires: [uv]
-env_required: [OPENROUTER_API_KEY]
+env_required: [GOOGLE_AI_API_KEY, OPENROUTER_API_KEY]
 schema:
   type: object
   properties:
