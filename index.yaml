@@ -89,8 +89,8 @@ tools:
       - run.py
 
   - name: view_image
-    description: Analyse an image (local file or URL) with a free vision LLM and answer questions about it. Uses OpenRouter free tier (OPENROUTER_API_KEY) or Google Gemini Flash (GOOGLE_AI_API_KEY).
-    version: "1.0.0"
+    description: Analyse an image (local file or URL) with a free vision LLM and answer questions about it. Prefers Google Gemini Flash (GOOGLE_AI_API_KEY) with retry + OpenRouter fallback (OPENROUTER_API_KEY).
+    version: "1.1.0"
     files:
       - tool.yaml
       - run.py

@@ -3,8 +3,8 @@
 view_image — analyse an image with a free vision LLM.
 
 Providers (checked in order):
-  1. OpenRouter  (OPENROUTER_API_KEY)  default model: nvidia/nemotron-nano-12b-v2-vl:free
-  2. Google Gemini (GOOGLE_AI_API_KEY) model: gemini-2.0-flash
+  1. Google Gemini (GOOGLE_AI_API_KEY) model: gemini-flash-latest  (preferred — better Thai)
+  2. OpenRouter  (OPENROUTER_API_KEY)  fallback model: nvidia/nemotron-nano-12b-v2-vl:free
 
 Usage: run.py <source> [question]
   source   — local file path or public URL
@@ -13,12 +13,13 @@ Usage: run.py <source> [question]
 
 import sys
 import os
+import time
 import base64
 import mimetypes
 import httpx
 
 OPENROUTER_MODEL = "nvidia/nemotron-nano-12b-v2-vl:free"
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-flash-latest"
 DEFAULT_QUESTION = "Describe this image in detail."
 
 
@@ -100,6 +101,32 @@ def ask_gemini(source: str, question: str, api_key: str) -> str:
     return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
 
 
+def ask_gemini_with_retry(
+    source: str, question: str, api_key: str, attempts: int = 3
+) -> str:
+    """Call Gemini, retrying on 429 (free-tier rate limit) with backoff.
+
+    Honours the Retry-After header when present (capped at 20s so the tool
+    never hangs the caller), otherwise falls back to 1s/2s/4s backoff.
+    """
+    last_err: Exception | None = None
+    for i in range(attempts):
+        try:
+            return ask_gemini(source, question, api_key)
+        except httpx.HTTPStatusError as e:
+            last_err = e
+            if e.response.status_code == 429 and i < attempts - 1:
+                wait = 2**i
+                ra = e.response.headers.get("retry-after", "")
+                if ra.isdigit():
+                    wait = min(int(ra), 20)
+                time.sleep(wait)
+                continue
+            raise
+    assert last_err is not None
+    raise last_err
+
+
 def main() -> None:
     args = sys.argv[1:]
     if not args:
@@ -113,12 +140,26 @@ def main() -> None:
     or_key = os.environ.get("OPENROUTER_API_KEY", "")
     gm_key = os.environ.get("GOOGLE_AI_API_KEY", "")
 
-    if or_key:
+    # Gemini preferred — far better Thai output and a more generous free tier
+    # than the OpenRouter free vision model, which hallucinated garbled text.
+    # On Gemini failure (rate limit after retries, network, etc.) fall back to
+    # OpenRouter so a transient 429 degrades to a weaker answer, not no answer.
+    if gm_key:
+        try:
+            result = ask_gemini_with_retry(source, question, gm_key)
+        except Exception as e:  # noqa: BLE001 — any Gemini failure → fallback
+            if or_key:
+                print(
+                    f"[view_image: Gemini failed ({e}); falling back to OpenRouter]",
+                    file=sys.stderr,
+                )
+                result = ask_openrouter(source, question, or_key)
+            else:
+                die(f"Gemini failed and no OpenRouter fallback configured: {e}")
+    elif or_key:
         result = ask_openrouter(source, question, or_key)
-    elif gm_key:
-        result = ask_gemini(source, question, gm_key)
     else:
-        die("Set OPENROUTER_API_KEY or GOOGLE_AI_API_KEY to use view_image.")
+        die("Set GOOGLE_AI_API_KEY or OPENROUTER_API_KEY to use view_image.")
 
     print(result)
 
