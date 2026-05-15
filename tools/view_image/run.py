@@ -3,7 +3,7 @@
 view_image — analyse an image with a free vision LLM.
 
 Providers (checked in order):
-  1. OpenRouter  (OPENROUTER_API_KEY)  default model: meta-llama/llama-3.2-11b-vision-instruct:free
+  1. OpenRouter  (OPENROUTER_API_KEY)  default model: nvidia/nemotron-nano-12b-v2-vl:free
   2. Google Gemini (GOOGLE_AI_API_KEY) model: gemini-2.0-flash
 
 Usage: run.py <source> [question]
@@ -17,7 +17,7 @@ import base64
 import mimetypes
 import httpx
 
-OPENROUTER_MODEL = "meta-llama/llama-3.2-11b-vision-instruct:free"
+OPENROUTER_MODEL = "nvidia/nemotron-nano-12b-v2-vl:free"
 GEMINI_MODEL = "gemini-2.0-flash"
 DEFAULT_QUESTION = "Describe this image in detail."
 
