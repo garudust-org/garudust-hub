@@ -43,6 +43,12 @@
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true,
       "description": "Runtimes or binaries the tool depends on (e.g. python3, node, zbarimg)"
+    },
+    "env_required": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Environment variables that must be set before the tool can run (e.g. HF_TOKEN, OPENROUTER_API_KEY)"
     }
   }
 }
