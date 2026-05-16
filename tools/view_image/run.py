@@ -3,8 +3,8 @@
 view_image — analyse an image with a free vision LLM.
 
 Providers (checked in order):
-  1. Google Gemini (GOOGLE_AI_API_KEY) model: gemini-flash-latest  (preferred — better Thai)
-  2. OpenRouter  (OPENROUTER_API_KEY)  fallback model: nvidia/nemotron-nano-12b-v2-vl:free
+  1. Google Gemini (GOOGLE_AI_API_KEY) model: GARUDUST_MODEL env (default: gemini-flash-latest)
+  2. OpenRouter  (OPENROUTER_API_KEY)  model: GARUDUST_FALLBACK_MODEL env (default: nvidia/nemotron-nano-12b-v2-vl:free)
 
 Usage: run.py <source> [question]
   source   — local file path or public URL
@@ -18,8 +18,8 @@ import base64
 import mimetypes
 import httpx
 
-OPENROUTER_MODEL = "nvidia/nemotron-nano-12b-v2-vl:free"
-GEMINI_MODEL = "gemini-flash-latest"
+GEMINI_MODEL = os.environ.get("GARUDUST_MODEL", "gemini-flash-latest")
+OPENROUTER_MODEL = os.environ.get("GARUDUST_FALLBACK_MODEL", "nvidia/nemotron-nano-12b-v2-vl:free")
 DEFAULT_QUESTION = "Describe this image in detail."
 
 
