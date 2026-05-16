@@ -22,7 +22,12 @@ schema:
       description: >
         What to ask about the image, e.g. "What objects are in this image?"
         Defaults to a general description if omitted.
+    sender:
+      type: string
+      description: >
+        Name or username of the person who sent the image (e.g. LINE display name).
+        Used for logging — recorded as @sender in ~/.garudust/view_image.log.
   required: [source]
 model: gemini-flash-latest
 fallback_model: nvidia/nemotron-nano-12b-v2-vl:free
-command: uv run --with httpx ./run.py {source} {question}
+command: uv run --with httpx ./run.py {source} {question} {sender}
