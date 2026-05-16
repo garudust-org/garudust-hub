@@ -49,6 +49,14 @@
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true,
       "description": "Environment variables that must be set before the tool can run (e.g. HF_TOKEN, OPENROUTER_API_KEY)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Primary model identifier used by the tool (e.g. gemini-flash-latest)"
+    },
+    "fallback_model": {
+      "type": "string",
+      "description": "Fallback model identifier if the primary model is unavailable"
     }
   }
 }
