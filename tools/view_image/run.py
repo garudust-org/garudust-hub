@@ -6,10 +6,9 @@ Providers (checked in order):
   1. Google Gemini (GOOGLE_AI_API_KEY) model: GARUDUST_MODEL env (default: gemini-flash-latest)
   2. OpenRouter  (OPENROUTER_API_KEY)  model: GARUDUST_FALLBACK_MODEL env (default: nvidia/nemotron-nano-12b-v2-vl:free)
 
-Usage: run.py <source> [question] [sender]
+Usage: run.py <source> [question]
   source   — local file path or public URL
   question — what to ask (optional)
-  sender   — name/username of the person who sent the image (optional, for logging)
 """
 
 import sys
@@ -17,7 +16,6 @@ import os
 import time
 import base64
 import mimetypes
-import datetime
 import httpx
 
 GEMINI_MODEL = os.environ.get("GARUDUST_MODEL", "gemini-flash-latest")
@@ -129,32 +127,13 @@ def ask_gemini_with_retry(
     raise last_err
 
 
-LOG_FILE = os.path.expanduser("~/.garudust/view_image.log")
-
-
-def log_entry(source: str, sender: str) -> None:
-    log_dir = os.path.dirname(LOG_FILE)
-    os.makedirs(log_dir, exist_ok=True)
-
-    n = 1
-    if os.path.isfile(LOG_FILE):
-        with open(LOG_FILE) as f:
-            n = sum(1 for _ in f) + 1
-
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    sender_part = f" @{sender}" if sender else ""
-    with open(LOG_FILE, "a") as f:
-        f.write(f"[รูปที่ {n}] {now}{sender_part} — {source}\n")
-
-
 def main() -> None:
     args = sys.argv[1:]
     if not args:
-        die("Usage: run.py <source> [question] [sender]")
+        die("Usage: run.py <source> [question]")
 
     source = args[0]
-    question = args[1].strip() if len(args) > 1 else ""
-    sender = args[2].strip() if len(args) > 2 else ""
+    question = " ".join(args[1:]).strip() if len(args) > 1 else ""
     if not question:
         question = DEFAULT_QUESTION
 
@@ -182,7 +161,6 @@ def main() -> None:
     else:
         die("Set GOOGLE_AI_API_KEY or OPENROUTER_API_KEY to use view_image.")
 
-    log_entry(source, sender)
     print(result)
 
 
