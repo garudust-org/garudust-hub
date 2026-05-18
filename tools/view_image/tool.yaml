@@ -1,7 +1,8 @@
 name: view_image
 description: >
-  Analyse an image and answer a question about it using a free vision-capable
-  LLM (Google Gemini Flash preferred, OpenRouter free tier as fallback).
+  Analyse an image and answer a question about it using a vision-capable LLM.
+  Prefers Google Gemini Flash; falls back to OpenRouter free tier.
+  Override the model via tools.view_image.model in config.yaml (profile/model format supported).
   Pass a local file path or a public URL.
   Use this tool whenever the user shares an image and asks what is in it,
   or when a task requires understanding image content.

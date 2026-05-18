@@ -41,6 +41,7 @@ description: One sentence describing what this tool does.
 toolset: hub
 destructive: false        # true if the tool writes/deletes external state
 requires: [python3]       # optional — runtimes or binaries needed
+env_required: [MY_API_KEY]  # optional — secrets forwarded from ~/.garudust/.env
 schema:
   type: object
   properties:
@@ -49,6 +50,11 @@ schema:
       description: What this parameter is for
   required: [param_name]
 command: python3 ./run.py {param_name}
+
+# Optional — declare default models for vision/LLM tools.
+# Users can override these in their config.yaml under tools.<name>.model.
+# model: gemini-flash-latest
+# fallback_model: openai/gpt-4o-mini
 ```
 
 **Rules:**
@@ -56,8 +62,55 @@ command: python3 ./run.py {param_name}
 - `description` must be at least 10 characters
 - `toolset` must be `"hub"`
 - `requires` is optional but must be filled when the tool depends on a non-standard binary
+- `env_required` lists secrets the tool reads from `~/.garudust/.env`; only those keys are forwarded
 - Placeholders in `command` must match keys in `schema.properties`
 - Validate against the schema before submitting: see [Validation](#validation)
+
+### LLM-enabled tools — env vars injected by the agent
+
+When a tool declares `model` / `fallback_model` in `tool.yaml`, users can override them in `config.yaml`:
+
+```yaml
+# ~/.garudust/config.yaml
+providers:
+  vision:
+    name: gemini
+    key: ${GOOGLE_AI_API_KEY}
+  vision-fallback:
+    name: openrouter
+    key: ${OPENROUTER_API_KEY}
+
+tools:
+  my_tool:
+    model: vision/gemini-flash-latest        # "profile/model" or "provider/model"
+    fallback_model: vision-fallback/nvidia/nemotron-nano-12b-v2-vl:free
+```
+
+The agent resolves the profile and injects these env vars into the tool subprocess:
+
+| Env var | Value |
+|---|---|
+| `GARUDUST_MODEL` | Resolved model name (e.g. `gemini-flash-latest`) |
+| `GARUDUST_BASE_URL` | Provider base URL from the named profile |
+| `GARUDUST_API_KEY` | API key resolved from the profile |
+| `GARUDUST_FALLBACK_MODEL` | Resolved fallback model name |
+| `GARUDUST_FALLBACK_BASE_URL` | Provider base URL for the fallback profile |
+| `GARUDUST_FALLBACK_API_KEY` | API key resolved from the fallback profile |
+
+**Best practice for tool scripts:** prefer `GARUDUST_API_KEY` over a named env var, and fall back to the named var for backward compatibility:
+
+```python
+# Python example
+import os
+api_key = os.environ.get("GARUDUST_API_KEY") or os.environ.get("MY_PROVIDER_API_KEY", "")
+model   = os.environ.get("GARUDUST_MODEL", "default-model-name")
+```
+
+```bash
+# Bash example
+API_KEY="${GARUDUST_API_KEY:-${MY_PROVIDER_API_KEY:-}}"
+MODEL="${GARUDUST_MODEL:-default-model-name}"
+```
 
 ### 4. Write your script (any language)
 

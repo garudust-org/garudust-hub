@@ -3,8 +3,15 @@
 view_image — analyse an image with a free vision LLM.
 
 Providers (checked in order):
-  1. Google Gemini (GOOGLE_AI_API_KEY) model: GARUDUST_MODEL env (default: gemini-flash-latest)
-  2. OpenRouter  (OPENROUTER_API_KEY)  model: GARUDUST_FALLBACK_MODEL env (default: nvidia/nemotron-nano-12b-v2-vl:free)
+  1. Google Gemini  model: GARUDUST_MODEL env (default: gemini-flash-latest)
+                    key:   GARUDUST_API_KEY → GOOGLE_AI_API_KEY (fallback)
+  2. OpenRouter     model: GARUDUST_FALLBACK_MODEL env (default: nvidia/nemotron-nano-12b-v2-vl:free)
+                    key:   GARUDUST_FALLBACK_API_KEY → OPENROUTER_API_KEY (fallback)
+
+GARUDUST_API_KEY and GARUDUST_FALLBACK_API_KEY are injected automatically when
+tools.view_image.model / fallback_model use the profile/model format in config.yaml
+(e.g. model: vision/gemini-flash-latest). Named env vars are used as fallbacks for
+backward compatibility.
 
 Usage: run.py <source> [question]
   source   — local file path or public URL
@@ -137,8 +144,9 @@ def main() -> None:
     if not question:
         question = DEFAULT_QUESTION
 
-    or_key = os.environ.get("OPENROUTER_API_KEY", "")
-    gm_key = os.environ.get("GOOGLE_AI_API_KEY", "")
+    # Prefer keys injected by the profile system; fall back to named env vars.
+    gm_key = os.environ.get("GARUDUST_API_KEY") or os.environ.get("GOOGLE_AI_API_KEY", "")
+    or_key = os.environ.get("GARUDUST_FALLBACK_API_KEY") or os.environ.get("OPENROUTER_API_KEY", "")
 
     # Gemini preferred — far better Thai output and a more generous free tier
     # than the OpenRouter free vision model, which hallucinated garbled text.
