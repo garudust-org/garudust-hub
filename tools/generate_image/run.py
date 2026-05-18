@@ -90,9 +90,11 @@ def main() -> None:
     if not output_path:
         die("output_path is required")
 
+    # Layer 1: injected by garudust tools.generate_image.key in config.yaml
+    # Layer 2: standard env var — portable across any agent or standalone use
     token = (os.environ.get("GARUDUST_API_KEY") or os.environ.get("HF_TOKEN", "")).strip()
     if not token:
-        die("HF_TOKEN (or GARUDUST_API_KEY via provider profile) is not set — get a free token at huggingface.co/settings/tokens")
+        die("Set HF_TOKEN, or configure tools.generate_image.key in config.yaml")
 
     base_url = os.environ.get("GARUDUST_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
     model = os.environ.get("GARUDUST_MODEL", DEFAULT_MODEL)

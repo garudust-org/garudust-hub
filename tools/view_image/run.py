@@ -144,7 +144,8 @@ def main() -> None:
     if not question:
         question = DEFAULT_QUESTION
 
-    # Prefer keys injected by the profile system; fall back to named env vars.
+    # Layer 1: injected by garudust tools.<name>.key in config.yaml
+    # Layer 2: standard env var — portable across any agent or standalone use
     gm_key = os.environ.get("GARUDUST_API_KEY") or os.environ.get("GOOGLE_AI_API_KEY", "")
     or_key = os.environ.get("GARUDUST_FALLBACK_API_KEY") or os.environ.get("OPENROUTER_API_KEY", "")
 
@@ -167,7 +168,7 @@ def main() -> None:
     elif or_key:
         result = ask_openrouter(source, question, or_key)
     else:
-        die("Set GOOGLE_AI_API_KEY or OPENROUTER_API_KEY to use view_image.")
+        die("Set GOOGLE_AI_API_KEY, or configure tools.view_image.key in config.yaml")
 
     print(result)
 
