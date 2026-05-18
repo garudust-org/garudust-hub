@@ -3,6 +3,8 @@ description: Generate an image from a text prompt using Hugging Face Inference A
 toolset: hub
 destructive: false
 requires: [uv]
+env_required: [HF_TOKEN]
+model: black-forest-labs/FLUX.1-schnell
 schema:
   type: object
   properties:

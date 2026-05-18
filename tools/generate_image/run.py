@@ -2,7 +2,7 @@
 import sys, os, json, time
 import httpx
 
-HF_API = "https://router.huggingface.co/hf-inference/models"
+DEFAULT_BASE_URL = "https://router.huggingface.co/hf-inference/models"
 DEFAULT_MODEL = "black-forest-labs/FLUX.1-schnell"
 MAX_RETRIES = 5
 RETRY_DELAYS = [2, 4, 8, 16, 30]
@@ -90,11 +90,13 @@ def main() -> None:
     if not output_path:
         die("output_path is required")
 
-    token = os.environ.get("HF_TOKEN", "").strip()
+    token = (os.environ.get("GARUDUST_API_KEY") or os.environ.get("HF_TOKEN", "")).strip()
     if not token:
-        die("HF_TOKEN environment variable is not set (get a free token at huggingface.co/settings/tokens)")
+        die("HF_TOKEN (or GARUDUST_API_KEY via provider profile) is not set — get a free token at huggingface.co/settings/tokens")
 
-    url = f"{HF_API}/{DEFAULT_MODEL}"
+    base_url = os.environ.get("GARUDUST_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
+    model = os.environ.get("GARUDUST_MODEL", DEFAULT_MODEL)
+    url = f"{base_url}/{model}"
     payload = {
         "inputs": prompt,
         "parameters": {
@@ -104,7 +106,7 @@ def main() -> None:
         },
     }
 
-    print(f"Generating {width}×{height} image with {DEFAULT_MODEL}...", file=sys.stderr)
+    print(f"Generating {width}×{height} image with {model}...", file=sys.stderr)
 
     image_bytes = None
     with httpx.Client(timeout=120) as client:
@@ -166,7 +168,7 @@ def main() -> None:
     print(json.dumps({
         "success": True,
         "output_path": output_path,
-        "model": DEFAULT_MODEL,
+        "model": model,
         "width": width,
         "height": height,
         "size_kb": len(image_bytes) // 1024,
