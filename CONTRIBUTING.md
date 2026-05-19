@@ -68,36 +68,34 @@ command: python3 ./run.py {param_name}
 
 ### LLM-enabled tools — env vars injected by the agent
 
-When a tool declares `model` / `fallback_model` in `tool.yaml`, users can override them in `config.yaml`:
+When a tool declares `model` / `fallback_model` hints in `tool.yaml`, the agent writes skeleton entries into `config.yaml` on install. Users fill in the credentials:
 
 ```yaml
 # ~/.garudust/config.yaml
-providers:
-  vision:
-    name: gemini
-    key: ${GOOGLE_AI_API_KEY}
-  vision-fallback:
-    name: openrouter
-    key: ${OPENROUTER_API_KEY}
-
 tools:
   my_tool:
-    model: vision/gemini-flash-latest        # "profile/model" or "provider/model"
-    fallback_model: vision-fallback/nvidia/nemotron-nano-12b-v2-vl:free
+    vision:                        # slot name — any name without "fallback" = primary
+      name: google                 # builtin provider name (inherits base URL)
+      key: ${GOOGLE_AI_API_KEY}    # ${ENV_VAR} or literal key
+      model: gemini-flash-latest
+    vision-fallback:               # slot name containing "fallback" = fallback
+      name: openrouter
+      key: ${OPENROUTER_API_KEY}
+      model: nvidia/nemotron-nano-12b-v2-vl:free
 ```
 
-The agent resolves the profile and injects these env vars into the tool subprocess:
+The agent injects these env vars into the tool subprocess for each slot:
 
-| Env var | Value |
-|---|---|
-| `GARUDUST_MODEL` | Resolved model name (e.g. `gemini-flash-latest`) |
-| `GARUDUST_BASE_URL` | Provider base URL from the named profile |
-| `GARUDUST_API_KEY` | API key resolved from the profile |
-| `GARUDUST_FALLBACK_MODEL` | Resolved fallback model name |
-| `GARUDUST_FALLBACK_BASE_URL` | Provider base URL for the fallback profile |
-| `GARUDUST_FALLBACK_API_KEY` | API key resolved from the fallback profile |
+| Env var | Slot type | Value |
+|---|---|---|
+| `GARUDUST_MODEL` | primary | Model name from the slot |
+| `GARUDUST_BASE_URL` | primary | Provider base URL (from `name:` or `url:`) |
+| `GARUDUST_API_KEY` | primary | Resolved API key |
+| `GARUDUST_FALLBACK_MODEL` | fallback | Model name from the fallback slot |
+| `GARUDUST_FALLBACK_BASE_URL` | fallback | Provider base URL for the fallback |
+| `GARUDUST_FALLBACK_API_KEY` | fallback | Resolved API key for the fallback |
 
-**Best practice for tool scripts:** prefer `GARUDUST_API_KEY` over a named env var, and fall back to the named var for backward compatibility:
+**Best practice for tool scripts:** prefer `GARUDUST_API_KEY` over a named env var, and fall back to the named var for standalone/cross-agent portability:
 
 ```python
 # Python example
