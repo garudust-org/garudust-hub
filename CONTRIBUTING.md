@@ -68,30 +68,34 @@ command: python3 ./run.py {param_name}
 
 ### LLM-enabled tools — env vars injected by the agent
 
-When a tool declares `model` / `fallback_model` hints in `tool.yaml`, the agent writes skeleton entries into `config.yaml` on install. Users fill in the credentials:
+When a tool declares `model` / `fallback_model` hints in `tool.yaml`, the agent prints a config snippet on install. Users add providers and reference them in `tools:`:
 
 ```yaml
 # ~/.garudust/config.yaml
+providers:
+  vision:                          # define credentials once, reuse across tools
+    name: google                   # builtin provider name (inherits base URL)
+    key: ${GOOGLE_AI_API_KEY}      # ${ENV_VAR} or literal key
+    model: gemini-flash-latest
+  vision-fallback:
+    name: openrouter
+    key: ${OPENROUTER_API_KEY}
+    model: nvidia/nemotron-nano-12b-v2-vl:free
+
 tools:
   my_tool:
-    vision:                        # slot name — any name without "fallback" = primary
-      name: google                 # builtin provider name (inherits base URL)
-      key: ${GOOGLE_AI_API_KEY}    # ${ENV_VAR} or literal key
-      model: gemini-flash-latest
-    vision-fallback:               # slot name containing "fallback" = fallback
-      name: openrouter
-      key: ${OPENROUTER_API_KEY}
-      model: nvidia/nemotron-nano-12b-v2-vl:free
+    model: vision                  # slot name without "fallback" = primary
+    model-fallback: vision-fallback  # slot name containing "fallback" = fallback
 ```
 
-The agent injects these env vars into the tool subprocess for each slot:
+Slot values are provider names — the agent looks them up in `providers:` and injects:
 
 | Env var | Slot type | Value |
 |---|---|---|
-| `GARUDUST_MODEL` | primary | Model name from the slot |
+| `GARUDUST_MODEL` | primary | `model:` from the referenced provider |
 | `GARUDUST_BASE_URL` | primary | Provider base URL (from `name:` or `url:`) |
 | `GARUDUST_API_KEY` | primary | Resolved API key |
-| `GARUDUST_FALLBACK_MODEL` | fallback | Model name from the fallback slot |
+| `GARUDUST_FALLBACK_MODEL` | fallback | `model:` from the fallback provider |
 | `GARUDUST_FALLBACK_BASE_URL` | fallback | Provider base URL for the fallback |
 | `GARUDUST_FALLBACK_API_KEY` | fallback | Resolved API key for the fallback |
 
