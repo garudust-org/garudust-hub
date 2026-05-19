@@ -79,6 +79,35 @@ garudust skill update facebook-workflow  # update a specific skill
 | `code-review` | Systematic PR review checklist — correctness, security, readability, and tests | `garudust skill install code-review` |
 | `facebook-workflow` | Research a topic, write a post, generate a matching image with AI, and publish to a Facebook Page | `garudust skill install facebook-workflow` |
 
+## Tools and skills that use a model
+
+Some tools (e.g. `view_image`, `generate_image`) call an external LLM or image API.
+After installing, add a **provider** entry with your credentials and reference it in the **tools** section of `~/.garudust/config.yaml`.
+
+```yaml
+# ~/.garudust/config.yaml
+providers:
+  vision:
+    name: google               # builtin provider — inherits base URL automatically
+    key: ${GOOGLE_AI_API_KEY}  # ${ENV_VAR} or a literal key
+    model: gemini-flash-latest
+  vision-fallback:             # optional fallback
+    name: openrouter
+    key: ${OPENROUTER_API_KEY}
+    model: nvidia/nemotron-nano-12b-v2-vl:free
+
+tools:
+  view_image:
+    model: vision              # slot without "fallback" → primary (GARUDUST_MODEL / _API_KEY / _BASE_URL)
+    model-fallback: vision-fallback  # slot with "fallback" → fallback (GARUDUST_FALLBACK_*)
+```
+
+**Providers can be shared.** If multiple tools use the same credentials, define the provider once and reference it from each tool.
+
+**Without garudust agent.** Tools also read standard env vars directly (`GOOGLE_AI_API_KEY`, `HF_TOKEN`, etc.) so they work standalone or with other agent frameworks without any config.yaml changes.
+
+---
+
 ## Writing tools in different languages
 
 Tools can be written in any language. The `command` field in `tool.yaml` is a plain shell command — set the interpreter there and declare runtime dependencies in `requires`.
