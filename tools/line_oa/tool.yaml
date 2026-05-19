@@ -1,0 +1,75 @@
+name: line_oa
+description: >
+  LINE Official Account operations — ส่งข้อความ push/broadcast/reply/multicast
+  และดึงโปรไฟล์ผู้ใช้ผ่าน LINE Messaging API v2. รองรับข้อความ text, image, sticker และ flex message.
+toolset: hub
+destructive: false
+requires:
+  - uv
+env_required:
+  - LINE_CHANNEL_ACCESS_TOKEN
+command: "uv run --with httpx ./run.py"
+schema:
+  type: object
+  required:
+    - action
+  properties:
+    action:
+      type: string
+      enum:
+        - push
+        - broadcast
+        - reply
+        - multicast
+        - get_profile
+      description: >
+        push — ส่งข้อความหาผู้ใช้คนเดียว (ต้องระบุ user_id);
+        broadcast — broadcast ไปยังผู้ติดตามทั้งหมด;
+        reply — ตอบกลับ event webhook (ต้องระบุ reply_token);
+        multicast — ส่งหาผู้ใช้หลายคน (ต้องระบุ user_ids);
+        get_profile — ดึงข้อมูลโปรไฟล์ผู้ใช้ (ต้องระบุ user_id)
+    user_id:
+      type: string
+      description: LINE userId (สำหรับ push และ get_profile)
+    user_ids:
+      type: array
+      items:
+        type: string
+      description: รายการ userId สำหรับ multicast (สูงสุด 500 คน)
+    reply_token:
+      type: string
+      description: replyToken จาก webhook event (สำหรับ reply)
+    message_type:
+      type: string
+      enum:
+        - text
+        - image
+        - sticker
+        - flex
+      default: text
+      description: ประเภทข้อความ (default text)
+    text:
+      type: string
+      description: เนื้อหาข้อความ (สำหรับ message_type text)
+    image_url:
+      type: string
+      description: URL รูปภาพต้นฉบับ (สำหรับ message_type image)
+    preview_url:
+      type: string
+      description: URL รูปภาพ preview (สำหรับ message_type image; ถ้าไม่ระบุจะใช้ image_url)
+    sticker_package_id:
+      type: integer
+      description: packageId ของ sticker (สำหรับ message_type sticker)
+    sticker_id:
+      type: integer
+      description: stickerId (สำหรับ message_type sticker)
+    flex_content:
+      type: object
+      description: LINE Flex Message container object (สำหรับ message_type flex)
+    alt_text:
+      type: string
+      description: ข้อความแทน สำหรับ flex และ image (default "Message")
+    notification_disabled:
+      type: boolean
+      default: false
+      description: ปิดการแจ้งเตือน push notification (default false)
