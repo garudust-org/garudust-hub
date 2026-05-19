@@ -1,3 +1,4 @@
 tools/*/target/
 tools/*/node_modules/
 .DS_Store
+.claude/
