@@ -1,0 +1,16 @@
+name: tts
+description: "แปลงข้อความเป็นไฟล์เสียง (Thai TTS) — คืน path ของ audio file ที่สร้าง ผู้ใช้ตั้งค่า TTS_SPEAKER_ID และ TTS_SPEED ใน .env เพื่อเลือกเสียงและความเร็ว"
+version: "1.0.0"
+input_schema:
+  type: object
+  properties:
+    text:
+      type: string
+      description: "ข้อความที่ต้องการแปลงเป็นเสียง"
+  required: [text]
+command: "python3 ./run.py {text}"
+env_required:
+  - GARUDUST_API_KEY
+  - GARUDUST_BASE_URL
+  - TTS_SPEAKER_ID
+  - TTS_SPEED
