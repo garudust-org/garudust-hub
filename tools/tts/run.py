@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Thai TTS tool — calls iApp TTS API via GARUDUST_BASE_URL / GARUDUST_API_KEY.
 
-Endpoint: POST https://api.iapp.co.th/v3/store/audio/tts/generate
-Body: {"text": "..."} — returns WAV at 24kHz, max 10,000 chars.
+Endpoint: POST https://api.iapp.co.th/v3/store/audio/tts
+Returns raw 16-bit PCM at 24kHz mono; this script wraps it in a WAV header.
 
 Config (set in ~/.garudust/.env):
   GARUDUST_BASE_URL   - TTS API endpoint  (via tools.tts.model profile)
@@ -11,6 +11,7 @@ Config (set in ~/.garudust/.env):
 
 import os
 import sys
+import struct
 import uuid
 
 try:
@@ -18,6 +19,25 @@ try:
 except ImportError:
     print("error: httpx not installed — run: pip install httpx", file=sys.stderr)
     sys.exit(1)
+
+
+def pcm_to_wav(pcm: bytes, sample_rate: int = 24000, channels: int = 1, bits: int = 16) -> bytes:
+    byte_rate   = sample_rate * channels * bits // 8
+    block_align = channels * bits // 8
+    data_size   = len(pcm)
+    header = struct.pack(
+        "<4sI4s4sIHHIIHH4sI",
+        b"RIFF", 36 + data_size, b"WAVE",
+        b"fmt ", 16,
+        1,            # PCM
+        channels,
+        sample_rate,
+        byte_rate,
+        block_align,
+        bits,
+        b"data", data_size,
+    )
+    return header + pcm
 
 
 def main() -> None:
@@ -51,12 +71,13 @@ def main() -> None:
         print(f"error: TTS API request failed: {e}", file=sys.stderr)
         sys.exit(1)
 
-    content_type = resp.headers.get("content-type", "")
-    ext = "mp3" if "mpeg" in content_type else "wav"
-    out_path = f"/tmp/tts_{uuid.uuid4().hex}.{ext}"
+    raw = resp.content
+    # iApp returns raw PCM (no RIFF header) — wrap it
+    wav = pcm_to_wav(raw) if not raw.startswith(b"RIFF") else raw
 
+    out_path = f"/tmp/tts_{uuid.uuid4().hex}.wav"
     with open(out_path, "wb") as f:
-        f.write(resp.content)
+        f.write(wav)
 
     print(out_path)
 
