@@ -102,6 +102,20 @@ tools:
       - tool.yaml
       - run.py
 
+  - name: email_send
+    description: Send email via Resend API or SMTP. Auto-detects provider from env — RESEND_API_KEY for Resend, SMTP_HOST for SMTP.
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.py
+
+  - name: github_ops
+    description: GitHub API operations — create PR, list issues, comment, merge, close issue. Requires GITHUB_TOKEN.
+    version: "1.0.0"
+    files:
+      - tool.yaml
+      - run.py
+
 skills:
   - name: git-workflow
     description: Conventional commits, branch naming, and PR best practices for every git operation

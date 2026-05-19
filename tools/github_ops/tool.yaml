@@ -1,0 +1,45 @@
+name: github_ops
+description: "GitHub API operations — create PR, list issues, comment, merge, close. ต้องการ GITHUB_TOKEN"
+toolset: hub
+destructive: false
+requires: [uv]
+env_required:
+  - GITHUB_TOKEN
+schema:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [create_pr, list_prs, get_pr, comment, list_issues, get_issue, merge_pr, close_issue]
+      description: "GitHub operation"
+    repo:
+      type: string
+      description: "Repository in owner/repo format (e.g. octocat/hello-world)"
+    title:
+      type: string
+      description: "PR title (required for create_pr)"
+    body:
+      type: string
+      description: "PR/issue body or comment text"
+    head:
+      type: string
+      description: "Source branch name (required for create_pr)"
+    base:
+      type: string
+      description: "Target branch name (default: main)"
+    number:
+      type: integer
+      description: "PR or issue number (required for get_pr, get_issue, comment, merge_pr, close_issue)"
+    state:
+      type: string
+      enum: [open, closed, all]
+      description: "Filter state for list operations (default: open)"
+    labels:
+      type: string
+      description: "Comma-separated label names to filter issues"
+    merge_method:
+      type: string
+      enum: [merge, squash, rebase]
+      description: "Merge strategy for merge_pr (default: merge)"
+  required: [action, repo]
+command: "uv run --with httpx ./run.py"

@@ -1,0 +1,36 @@
+name: email_send
+description: "ส่งอีเมลผ่าน Resend API หรือ SMTP — ตรวจ RESEND_API_KEY ก่อน ถ้าไม่มีจึงใช้ SMTP"
+toolset: hub
+destructive: false
+requires: [uv]
+env_required:
+  - RESEND_API_KEY
+  - RESEND_FROM_EMAIL
+  - SMTP_HOST
+  - SMTP_PORT
+  - SMTP_USER
+  - SMTP_PASSWORD
+  - SMTP_FROM
+schema:
+  type: object
+  properties:
+    to:
+      type: string
+      description: "ที่อยู่ผู้รับ (หลายคนคั่นด้วย comma)"
+    subject:
+      type: string
+      description: "หัวเรื่องอีเมล"
+    body:
+      type: string
+      description: "เนื้อหาอีเมล (plain text หรือ HTML)"
+    html:
+      type: boolean
+      description: "true ถ้า body เป็น HTML (default: false)"
+    from_name:
+      type: string
+      description: "ชื่อผู้ส่งที่แสดง (optional)"
+    cc:
+      type: string
+      description: "CC addresses คั่นด้วย comma (optional)"
+  required: [to, subject, body]
+command: "uv run --with httpx ./run.py"
