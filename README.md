@@ -54,14 +54,19 @@ garudust skill install well-known:https://example.com
 | `hash_text` | Compute SHA-256 hash of a string | Inline | — |
 | `read_qr` | Decode a QR code from an image file | Bash | `zbarimg` |
 | `csv_to_json` | Convert a CSV file to a JSON array of objects | Python | `python3` |
+| `file_info` | Return size, MIME type, encoding, and line count of a file | Python | `python3` |
 | `token_count` | Count characters, words, and estimated LLM tokens | Rust | `rustc` |
 | `fetch_title` | Fetch the HTML title of a webpage | Python + uv | `uv` |
+| `extract_urls` | Extract all URLs from an HTML or plain text file | Python + uv | `uv` |
 | `markdown_to_html` | Convert a Markdown file to HTML | Rust + cargo | `cargo` |
 | `yaml_to_json` | Convert a YAML file to formatted JSON | Node.js + npm | `node`, `npm` |
-| `file_info` | Return size, MIME type, encoding, and line count of a file | Python | `python3` |
-| `extract_urls` | Extract all URLs from an HTML or plain text file | Python + uv | `uv` |
 | `facebook_post` | Post text or photo to a Facebook Page via Graph API | Python + uv | `uv`, `FACEBOOK_ACCESS_TOKEN` |
 | `generate_image` | Generate an image from a text prompt (HF FLUX.1-schnell, free tier) | Python + uv | `uv`, `HF_TOKEN` |
+| `view_image` | Analyse an image with a vision LLM (Gemini Flash / OpenRouter fallback) | Python + uv | `uv`, provider config |
+| `email_send` | Send email via Resend API or SMTP | Python + uv | `uv`, `RESEND_API_KEY` or SMTP vars |
+| `github_ops` | GitHub operations — create PR, list issues, comment, merge, close | Python + uv | `uv`, `GITHUB_TOKEN` |
+| `line_oa` | LINE Official Account — push/broadcast/reply messages and fetch user profiles | Python + uv | `uv`, `LINE_CHANNEL_ACCESS_TOKEN` |
+| `tts` | Convert text to speech via Thai TTS provider | Python + uv | `uv`, provider config |
 
 ## Available skills
 
