@@ -3,6 +3,7 @@ description: Post text or a photo with caption to a Facebook Page via Graph API.
 toolset: hub
 destructive: true
 requires: [uv]
+env_required: [FACEBOOK_ACCESS_TOKEN]
 schema:
   type: object
   properties:
