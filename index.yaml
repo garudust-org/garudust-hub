@@ -15,7 +15,7 @@ tools:
 
   - name: read_qr
     description: Decode a QR code from an image file
-    version: "1.0.0"
+    version: "1.0.1"
     files:
       - tool.yaml
       - run.sh
