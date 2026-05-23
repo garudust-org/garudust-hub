@@ -148,3 +148,15 @@ skills:
     version: "1.5.0"
     files:
       - SKILL.md
+
+  - name: weather
+    description: Get current weather for any city via wttr.in using http_request — no API key or subprocess required
+    version: "1.0.0"
+    files:
+      - SKILL.md
+
+  - name: fetch-title
+    description: Fetch the HTML title of any webpage using web_fetch — no Python or uv dependency required
+    version: "1.0.0"
+    files:
+      - SKILL.md

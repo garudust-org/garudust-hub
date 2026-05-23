@@ -1,4 +1,6 @@
 name: weather
+deprecated: true
+deprecation_notice: "Use the weather skill instead: `garudust skill install weather`. The skill uses http_request with no subprocess dependency."
 description: Get current weather for a city. Use when the user asks about current weather conditions in a specific location.
 toolset: hub
 destructive: false
