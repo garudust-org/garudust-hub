@@ -1,12 +1,5 @@
 version: "1"
 tools:
-  - name: weather
-    description: Get current weather for a city using wttr.in (no API key required)
-    version: "1.0.0"
-    files:
-      - tool.yaml
-      - run.sh
-
   - name: hash_text
     description: Compute the SHA-256 hash of a string
     version: "1.0.0"
@@ -34,13 +27,6 @@ tools:
       - tool.yaml
       - run.sh
       - main.rs
-
-  - name: fetch_title
-    description: Fetch the HTML title of a webpage from a given URL
-    version: "1.0.0"
-    files:
-      - tool.yaml
-      - run.py
 
   - name: markdown_to_html
     description: Convert a Markdown file to HTML with support for tables, strikethrough, and task lists
