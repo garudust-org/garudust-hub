@@ -57,6 +57,14 @@
     "fallback_model": {
       "type": "string",
       "description": "Fallback model identifier if the primary model is unavailable"
+    },
+    "deprecated": {
+      "type": "boolean",
+      "description": "True if this tool is deprecated and should not be used in new installations"
+    },
+    "deprecation_notice": {
+      "type": "string",
+      "description": "Human-readable message explaining the deprecation and the recommended replacement"
     }
   }
 }
