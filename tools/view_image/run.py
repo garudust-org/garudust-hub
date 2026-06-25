@@ -20,19 +20,79 @@ Usage: run.py <source> [question]
 
 import sys
 import os
+import io
+import re
 import time
 import base64
 import mimetypes
 import httpx
 
+# Transient server-side failures worth retrying. 503 (Gemini overloaded) is the
+# common one; 500/502/504 are added defensively. 429 is the free-tier rate limit.
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+
+
+def scrub(text: object) -> str:
+    """Redact API keys before anything reaches stderr/history.
+
+    Both providers leak the key in error text: Gemini puts it in the request URL
+    (?key=…) and OpenRouter uses an Authorization: Bearer header. These errors are
+    captured into the LINE conversation log and the model's context, so the raw key
+    must never survive into them.
+    """
+    s = str(text)
+    s = re.sub(r"([?&]key=)[A-Za-z0-9._\-]+", r"\1REDACTED", s)
+    s = re.sub(r"(Bearer\s+)[A-Za-z0-9._\-]+", r"\1REDACTED", s)
+    return s
+
 GEMINI_MODEL = os.environ.get("GARUDUST_MODEL", "gemini-flash-latest")
 OPENROUTER_MODEL = os.environ.get("GARUDUST_FALLBACK_MODEL", "nvidia/nemotron-nano-12b-v2-vl:free")
 DEFAULT_QUESTION = "Describe this image in detail."
 
+# Downscale large photos before upload. Gemini and OpenRouter both internally
+# cap vision inputs around ~1024–2048 px; sending a 4000×3000 phone photo
+# wastes seconds of upload + server-side resize for no quality gain. 1280 is
+# a conservative cap that preserves enough detail for QR/text reading.
+MAX_DIM = 1280
+JPEG_QUALITY = 85
 
-def die(msg: str) -> None:
-    print(f"Error: {msg}", file=sys.stderr)
+
+def die(msg: object) -> None:
+    print(f"Error: {scrub(msg)}", file=sys.stderr)
     sys.exit(1)
+
+
+def maybe_downscale(raw: bytes, fallback_mime: str) -> tuple[bytes, str]:
+    """Return (bytes, mime) — downscaled to <= MAX_DIM if larger, else original.
+
+    Falls back to the input bytes + caller's mime if Pillow is unavailable or
+    decoding fails. JPEG is forced when actually resizing, since transparency
+    isn't useful for vision-model description and JPEG compresses far smaller.
+    """
+    try:
+        from PIL import Image, ImageOps  # type: ignore
+    except ImportError:
+        return raw, fallback_mime
+
+    try:
+        img = Image.open(io.BytesIO(raw))
+        img = ImageOps.exif_transpose(img)  # honour camera rotation
+        w, h = img.size
+        if max(w, h) <= MAX_DIM:
+            return raw, fallback_mime
+        img.thumbnail((MAX_DIM, MAX_DIM), Image.LANCZOS)
+        if img.mode not in ("RGB", "L"):
+            bg = Image.new("RGB", img.size, (255, 255, 255))
+            if img.mode == "RGBA":
+                bg.paste(img, mask=img.split()[-1])
+            else:
+                bg.paste(img.convert("RGB"))
+            img = bg
+        out = io.BytesIO()
+        img.save(out, format="JPEG", quality=JPEG_QUALITY, optimize=True)
+        return out.getvalue(), "image/jpeg"
+    except Exception:
+        return raw, fallback_mime
 
 
 def load_image(source: str) -> tuple[str, str]:
@@ -45,8 +105,9 @@ def load_image(source: str) -> tuple[str, str]:
     if not mime or not mime.startswith("image/"):
         mime = "image/jpeg"
     with open(source, "rb") as f:
-        data = base64.standard_b64encode(f.read()).decode()
-    return data, mime
+        raw = f.read()
+    data, mime = maybe_downscale(raw, mime)
+    return base64.standard_b64encode(data).decode(), mime
 
 
 def build_image_part(source: str) -> dict:
@@ -79,7 +140,16 @@ def ask_openrouter(source: str, question: str, api_key: str) -> str:
         timeout=60,
     )
     resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"]
+    data = resp.json()
+    # A 200 from OpenRouter can still be an error envelope ({"error": {...}}) when
+    # the free model is rate-limited or unavailable — indexing ["choices"] blindly
+    # then dies with a bare KeyError. Surface a clean message instead.
+    choices = data.get("choices")
+    if not choices:
+        err = data.get("error")
+        msg = err.get("message") if isinstance(err, dict) else err
+        raise RuntimeError(f"OpenRouter returned no choices: {msg or data}")
+    return choices[0]["message"]["content"]
 
 
 def ask_gemini(source: str, question: str, api_key: str) -> str:
@@ -105,13 +175,30 @@ def ask_gemini(source: str, question: str, api_key: str) -> str:
     )
     resp = httpx.post(url, json=payload, timeout=60)
     resp.raise_for_status()
-    return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+    data = resp.json()
+    # A 200 from Gemini can still carry no usable text: the prompt may be blocked
+    # (promptFeedback.blockReason), or the candidate may stop on SAFETY/RECITATION
+    # with no parts. Indexing ["candidates"][0]…["text"] blindly then dies with a
+    # bare KeyError/IndexError and wrongly trips the OpenRouter fallback, hiding
+    # the real reason. Surface a clean message instead — mirrors ask_openrouter.
+    block = data.get("promptFeedback", {}).get("blockReason")
+    if block:
+        raise RuntimeError(f"Gemini blocked the prompt: {block}")
+    candidates = data.get("candidates")
+    if not candidates:
+        raise RuntimeError(f"Gemini returned no candidates: {data}")
+    parts = candidates[0].get("content", {}).get("parts")
+    if not parts:
+        reason = candidates[0].get("finishReason", "unknown")
+        raise RuntimeError(f"Gemini returned no content (finishReason: {reason})")
+    return parts[0]["text"]
 
 
 def ask_gemini_with_retry(
     source: str, question: str, api_key: str, attempts: int = 3
 ) -> str:
-    """Call Gemini, retrying on 429 (free-tier rate limit) with backoff.
+    """Call Gemini, retrying transient failures (429 rate limit, 5xx server
+    errors such as 503 overloaded) with backoff.
 
     Honours the Retry-After header when present (capped at 20s so the tool
     never hangs the caller), otherwise falls back to 1s/2s/4s backoff.
@@ -122,7 +209,7 @@ def ask_gemini_with_retry(
             return ask_gemini(source, question, api_key)
         except httpx.HTTPStatusError as e:
             last_err = e
-            if e.response.status_code == 429 and i < attempts - 1:
+            if e.response.status_code in RETRYABLE_STATUS and i < attempts - 1:
                 wait = 2**i
                 ra = e.response.headers.get("retry-after", "")
                 if ra.isdigit():
@@ -158,7 +245,7 @@ def main() -> None:
         except Exception as e:  # noqa: BLE001 — any Gemini failure → fallback
             if or_key:
                 print(
-                    f"[view_image: Gemini failed ({e}); falling back to OpenRouter]",
+                    f"[view_image: Gemini failed ({scrub(e)}); falling back to OpenRouter]",
                     file=sys.stderr,
                 )
                 result = ask_openrouter(source, question, or_key)
@@ -173,4 +260,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # Wrap main so any uncaught exception exits as a single scrubbed line rather
+    # than a full Python traceback — a traceback would print the failing Gemini
+    # URL (with ?key=…) into the captured stderr that lands in conversation logs.
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception as e:  # noqa: BLE001
+        die(f"{type(e).__name__}: {e}")

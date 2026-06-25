@@ -26,4 +26,4 @@ schema:
   required: [source]
 model: gemini-flash-latest
 fallback_model: nvidia/nemotron-nano-12b-v2-vl:free
-command: uv run --with httpx ./run.py {source} {question}
+command: uv run --with httpx --with pillow ./run.py {source} {question}
