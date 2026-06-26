@@ -45,9 +45,24 @@ def scrub(text: object) -> str:
     s = re.sub(r"(Bearer\s+)[A-Za-z0-9._\-]+", r"\1REDACTED", s)
     return s
 
-GEMINI_MODEL = os.environ.get("GARUDUST_MODEL", "gemini-flash-latest")
+GEMINI_MODEL = os.environ.get("GARUDUST_MODEL", "gemini-2.5-flash")
+# Second Gemini model, tried on the SAME key when the primary is unavailable
+# (the shared free-tier `*-latest` alias frequently returns 503 "high demand").
+# A pinned, lighter model sits in a different capacity pool and is usually up
+# when the primary is overloaded — far more reliable than dropping straight to
+# the OpenRouter free tier, which idle-times-out under load. Set to "" to skip.
+GEMINI_FALLBACK_MODEL = os.environ.get(
+    "GARUDUST_GEMINI_FALLBACK_MODEL", "gemini-flash-lite-latest"
+)
 OPENROUTER_MODEL = os.environ.get("GARUDUST_FALLBACK_MODEL", "nvidia/nemotron-nano-12b-v2-vl:free")
 DEFAULT_QUESTION = "Describe this image in detail."
+
+# Per-request network timeouts. Kept tight so a stalled provider fails over to
+# the next link in the chain quickly instead of hanging the LINE reply for
+# minutes. Vision responses are normally well under 15s; these are generous
+# ceilings, not targets.
+GEMINI_TIMEOUT = 30
+OPENROUTER_TIMEOUT = 45
 
 # Downscale large photos before upload. Gemini and OpenRouter both internally
 # cap vision inputs around ~1024–2048 px; sending a 4000×3000 phone photo
@@ -120,9 +135,11 @@ def build_image_part(source: str) -> dict:
     return {"type": "image_url", "image_url": {"url": meta}}
 
 
-def ask_openrouter(source: str, question: str, api_key: str) -> str:
+def ask_openrouter(
+    source: str, question: str, api_key: str, model: str = OPENROUTER_MODEL
+) -> str:
     payload = {
-        "model": OPENROUTER_MODEL,
+        "model": model,
         "messages": [
             {
                 "role": "user",
@@ -137,7 +154,7 @@ def ask_openrouter(source: str, question: str, api_key: str) -> str:
         "https://openrouter.ai/api/v1/chat/completions",
         json=payload,
         headers={"Authorization": f"Bearer {api_key}"},
-        timeout=60,
+        timeout=OPENROUTER_TIMEOUT,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -152,7 +169,9 @@ def ask_openrouter(source: str, question: str, api_key: str) -> str:
     return choices[0]["message"]["content"]
 
 
-def ask_gemini(source: str, question: str, api_key: str) -> str:
+def ask_gemini(
+    source: str, question: str, api_key: str, model: str = GEMINI_MODEL
+) -> str:
     b64, meta = load_image(source)
     if b64:
         image_part = {"inline_data": {"mime_type": meta, "data": b64}}
@@ -171,9 +190,9 @@ def ask_gemini(source: str, question: str, api_key: str) -> str:
     }
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_MODEL}:generateContent?key={api_key}"
+        f"{model}:generateContent?key={api_key}"
     )
-    resp = httpx.post(url, json=payload, timeout=60)
+    resp = httpx.post(url, json=payload, timeout=GEMINI_TIMEOUT)
     resp.raise_for_status()
     data = resp.json()
     # A 200 from Gemini can still carry no usable text: the prompt may be blocked
@@ -195,25 +214,28 @@ def ask_gemini(source: str, question: str, api_key: str) -> str:
 
 
 def ask_gemini_with_retry(
-    source: str, question: str, api_key: str, attempts: int = 3
+    source: str, question: str, api_key: str, model: str = GEMINI_MODEL, attempts: int = 2
 ) -> str:
     """Call Gemini, retrying transient failures (429 rate limit, 5xx server
     errors such as 503 overloaded) with backoff.
 
-    Honours the Retry-After header when present (capped at 20s so the tool
-    never hangs the caller), otherwise falls back to 1s/2s/4s backoff.
+    Honours the Retry-After header when present (capped at 8s so the tool fails
+    over to the next provider quickly instead of stalling the LINE reply),
+    otherwise falls back to 1s/2s backoff. Only one local retry is attempted —
+    a persistently-overloaded model is better escaped via the provider chain
+    (a different pinned model / OpenRouter) than hammered in place.
     """
     last_err: Exception | None = None
     for i in range(attempts):
         try:
-            return ask_gemini(source, question, api_key)
+            return ask_gemini(source, question, api_key, model)
         except httpx.HTTPStatusError as e:
             last_err = e
             if e.response.status_code in RETRYABLE_STATUS and i < attempts - 1:
                 wait = 2**i
                 ra = e.response.headers.get("retry-after", "")
                 if ra.isdigit():
-                    wait = min(int(ra), 20)
+                    wait = min(int(ra), 8)
                 time.sleep(wait)
                 continue
             raise
@@ -235,26 +257,51 @@ def main() -> None:
     gm_key = os.environ.get("GARUDUST_API_KEY") or os.environ.get("GOOGLE_AI_API_KEY", "")
     or_key = os.environ.get("GARUDUST_FALLBACK_API_KEY") or os.environ.get("OPENROUTER_API_KEY", "")
 
-    # Gemini preferred — far better Thai output and a more generous free tier
-    # than the OpenRouter free vision model, which hallucinated garbled text.
-    # On Gemini failure (rate limit after retries, network, etc.) fall back to
-    # OpenRouter so a transient 429 degrades to a weaker answer, not no answer.
+    # Provider chain, tried in order until one returns an answer. Each link is
+    # (label, callable). Gemini is preferred — far better Thai output and a more
+    # generous free tier than the OpenRouter free vision model (which hallucinated
+    # garbled text). The second Gemini link reuses the same key but a different
+    # pinned model: when the primary is 503-overloaded the lighter model is
+    # usually still up, so we stay on Gemini quality instead of dropping to the
+    # OpenRouter free tier. OpenRouter is the last resort.
+    chain: list[tuple[str, object]] = []
     if gm_key:
+        chain.append((
+            f"Gemini ({GEMINI_MODEL})",
+            lambda: ask_gemini_with_retry(source, question, gm_key, GEMINI_MODEL),
+        ))
+        if GEMINI_FALLBACK_MODEL and GEMINI_FALLBACK_MODEL != GEMINI_MODEL:
+            chain.append((
+                f"Gemini ({GEMINI_FALLBACK_MODEL})",
+                lambda: ask_gemini_with_retry(
+                    source, question, gm_key, GEMINI_FALLBACK_MODEL
+                ),
+            ))
+    if or_key:
+        chain.append((
+            f"OpenRouter ({OPENROUTER_MODEL})",
+            lambda: ask_openrouter(source, question, or_key, OPENROUTER_MODEL),
+        ))
+
+    if not chain:
+        die("Set GOOGLE_AI_API_KEY or OPENROUTER_API_KEY to use view_image.")
+
+    errors: list[str] = []
+    result: str | None = None
+    for i, (label, call) in enumerate(chain):
         try:
-            result = ask_gemini_with_retry(source, question, gm_key)
-        except Exception as e:  # noqa: BLE001 — any Gemini failure → fallback
-            if or_key:
+            result = call()  # type: ignore[operator]
+            break
+        except Exception as e:  # noqa: BLE001 — any failure → try next link
+            errors.append(f"{label}: {scrub(e)}")
+            if i < len(chain) - 1:
                 print(
-                    f"[view_image: Gemini failed ({scrub(e)}); falling back to OpenRouter]",
+                    f"[view_image: {label} failed ({scrub(e)}); trying next provider]",
                     file=sys.stderr,
                 )
-                result = ask_openrouter(source, question, or_key)
-            else:
-                die(f"Gemini failed and no OpenRouter fallback configured: {e}")
-    elif or_key:
-        result = ask_openrouter(source, question, or_key)
-    else:
-        die("Set GOOGLE_AI_API_KEY or OPENROUTER_API_KEY to use view_image.")
+
+    if result is None:
+        die("all vision providers failed — " + " | ".join(errors))
 
     print(result)
 
